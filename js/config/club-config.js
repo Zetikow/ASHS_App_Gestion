@@ -86,5 +86,5 @@ const HOME_VENUE_KEYWORD = "hoenheim";
 // À COMPLÉTER : nom complet de la salle, utilisé comme valeur par défaut dans les formulaires.
 const DEFAULT_VENUE_NAME = "Gymnase de Hoenheim";
 
-// À COMPLÉTER : lien affiché dans le menu (icône avatar) vers le site du club (AS Hoenheim HB).
-const CLUB_WEBSITE_URL = "";
+// Lien affiché dans le menu (icône avatar) vers le site du club.
+const CLUB_WEBSITE_URL = "https://www.hoenheimsports.fr/feeds";

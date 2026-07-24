@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 480 960" width="480" height="960">
   <rect width="480" height="960" fill="#000000"/>
 
-  <g fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.6" stroke-linecap="round">
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.24" stroke-width="1.8" stroke-linecap="round">
     <line x1="20" y1="20" x2="120" y2="80"/>
     <line x1="340" y1="10" x2="450" y2="65"/>
     <line x1="60" y1="230" x2="160" y2="285"/>
@@ -12,7 +12,7 @@
     <line x1="360" y1="900" x2="460" y2="955"/>
   </g>
 
-  <g fill="#ffffff" fill-opacity="0.045" font-family="Arial, sans-serif" font-weight="800" font-size="46" letter-spacing="2">
+  <g fill="#ffffff" fill-opacity="0.09" font-family="Arial, sans-serif" font-weight="800" font-size="46" letter-spacing="2">
     <text x="-30" y="120" transform="rotate(-12 -30 120)">ASHS</text>
     <text x="230" y="70" transform="rotate(-12 230 70)">ASHS</text>
     <text x="60" y="330" transform="rotate(-12 60 330)">ASHS</text>
@@ -24,6 +24,4 @@
     <text x="60" y="1050" transform="rotate(-12 60 1050)">ASHS</text>
     <text x="300" y="1010" transform="rotate(-12 300 1010)">ASHS</text>
   </g>
-
-  <image href="logo.svg" xlink:href="logo.svg" x="90" y="417.5" width="300" height="300" opacity="0.5"/>
 </svg>
