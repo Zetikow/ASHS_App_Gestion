@@ -25,16 +25,25 @@ body {
   background-repeat: repeat-y;
 }
 /* Logo en filigrane fixe, centré à l'écran sur toutes les pages (indépendant du défilement /
-   de la hauteur de contenu, contrairement au filigrane répété de bg-ashs.svg). */
+   de la hauteur de contenu, contrairement au filigrane répété de bg-ashs.svg). logo.svg a un
+   fond carré plein (nécessaire pour l'icône app/login) : l'utiliser tel quel en background-image
+   avec une opacité réduite laissait deviner ce carré comme un bord visible sur le fond noir.
+   On l'utilise ici comme masque (mask-image, en niveaux de gris) sur un simple aplat blanc
+   translucide : seul le tracé blanc du blason (luminance haute) devient visible, le carré de
+   fond (noir, luminance basse) reste totalement transparent — plus aucun bord. */
 #app::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url('../images/logo.svg');
-  background-repeat: no-repeat;
-  background-position: center 40vh;
-  background-size: min(64vw, 320px);
-  opacity: 0.12;
+  background-color: rgba(255,255,255,0.16);
+  -webkit-mask-image: url('../images/logo.svg');
+  mask-image: url('../images/logo.svg');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center 40vh;
+  mask-position: center 40vh;
+  -webkit-mask-size: min(64vw, 320px);
+  mask-size: min(64vw, 320px);
   pointer-events: none;
   z-index: 0;
 }
