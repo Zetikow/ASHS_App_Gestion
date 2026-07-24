@@ -155,7 +155,7 @@ tr.total-row td { font-weight: 800; background: #1a1710; color: #ffd23f; }
 @keyframes ptrspin { to { transform: rotate(360deg); } }
 .login-suggestion-item:active { background: rgba(155,47,224,0.18); }
 .login-card .login-glow { position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; background: var(--glow); }
-.login-card img { height: 168px; margin-bottom: 16px; border-radius: 30px; position: relative; box-shadow: 0 10px 40px rgba(155,47,224,0.35); }
+.login-card img { height: 168px; width: 168px; object-fit: contain; margin-bottom: 16px; border-radius: 30px; position: relative; box-shadow: 0 10px 40px rgba(155,47,224,0.35); }
 .login-card .login-title { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -0.6px; margin-bottom: 6px; position: relative; }
 .login-card .login-subtitle { font-size: 13px; color: #e4e8f2; text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; margin-bottom: 10px; position: relative; }
 .login-error { color: #ff5a5a; font-size: 13px; margin-top: 10px; font-weight: 600; }

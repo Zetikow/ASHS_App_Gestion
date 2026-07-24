@@ -25,5 +25,5 @@
     <text x="300" y="1010" transform="rotate(-12 300 1010)">ASHS</text>
   </g>
 
-  <image href="logo.svg" xlink:href="logo.svg" x="90" y="380" width="300" height="375" opacity="0.5"/>
+  <image href="logo.svg" xlink:href="logo.svg" x="90" y="417.5" width="300" height="300" opacity="0.5"/>
 </svg>
