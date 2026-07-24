@@ -363,7 +363,7 @@ function getTabsForRole() {
   // importe son équipe). On l'affiche si l'un des rôles cumulés donne accès à la SF1.
   const isSF1 = isInTeam("SF1") || hasRole("Admin");
   if (isSF1 && (hasRole("Joueur") || hasRole("Coach") || hasRole("Admin"))) {
-    tabs.push({ id: "table", label: "Caisse noire", main: true });
+    tabs.push({ id: "table", label: "Caisse", main: true });
   }
 
   const extraCandidates = [];
@@ -377,7 +377,7 @@ function getTabsForRole() {
   const totalIfAllMain = tabs.length + extraCandidates.length + (hasCovoit ? 1 : 0) + 1;
   if (totalIfAllMain <= 6) {
     extraCandidates.forEach(e => tabs.push({ ...e, main: true }));
-    if (hasCovoit) tabs.push({ id: "covoiturage", label: "Gestion des matchs", main:true });
+    if (hasCovoit) tabs.push({ id: "covoiturage", label: "Gestion Matchs", main:true });
     tabs.push({ id: "profil", label: "Profil", main: true });
     return tabs;
   }
@@ -388,7 +388,7 @@ function getTabsForRole() {
   }
 
   const extra = extraCandidates.slice();
-  if (hasCovoit) extra.push({ id: "covoiturage", label: "Gestion des matchs", main:false });
+  if (hasCovoit) extra.push({ id: "covoiturage", label: "Gestion Matchs", main:false });
 
   // Un seul élément dans "Plus" -> inutile de le cacher derrière un clic, on l'affiche directement.
   if (extra.length === 1) {

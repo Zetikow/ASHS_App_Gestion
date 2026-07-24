@@ -160,9 +160,13 @@ function renderProfilPage() {
     html += renderAverageCard(chosenCoachTeam, false);
     html += renderAverageCard(chosenCoachTeam, true);
 
+    // Vue U17M1 : en plus de l'effectif M1, on ajoute les joueuses U17M2 qui ont déjà brûlé au
+    // moins un match avec l'U17M1, pour que ce coach puisse suivre leur compteur ici aussi.
     const mesJoueurs = chosenCoachTeam === "U17"
       ? comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && (rowEquipesForRole(c, "Joueur").indexOf("U17M1") !== -1 || rowEquipesForRole(c, "Joueur").indexOf("U17M2") !== -1))
-      : comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && rowEquipesForRole(c, "Joueur").indexOf(chosenCoachTeam) !== -1);
+      : chosenCoachTeam === "U17M1"
+        ? comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && (rowEquipesForRole(c, "Joueur").indexOf("U17M1") !== -1 || (rowEquipesForRole(c, "Joueur").indexOf("U17M2") !== -1 && bruleMatchesFor(c[0]) > 0)))
+        : comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && rowEquipesForRole(c, "Joueur").indexOf(chosenCoachTeam) !== -1);
     const showAll = !!window.__profilJoueursExpanded;
     const visible = showAll ? mesJoueurs : mesJoueurs.slice(0, 4);
     html += `<div class="card">
@@ -177,7 +181,7 @@ function renderProfilPage() {
         <div class="mesjoueurs-row">
           <div class="cn-avatar" style="width:32px; height:32px; font-size:11px;">${getInitials(j[0])}</div>
           <div class="mesjoueurs-name">${j[0]}</div>
-          ${brule !== null ? `<span class="badge" style="color:${bruleColor}; border-color:${bruleColor}66;">${brule}/${BRULAGE_MAX_MATCHES} en M1</span>` : ""}
+          ${brule !== null ? `<span class="badge" style="color:${bruleColor}; border-color:${bruleColor}66;">${brule}/${BRULAGE_MAX_MATCHES} en U17M1</span>` : ""}
           ${j[3] ? `<span class="badge">${String(j[3]).split(",")[0]}</span>` : ""}
         </div>`;
       }).join("")}
