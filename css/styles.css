@@ -24,6 +24,22 @@ body {
   background-position: top center;
   background-repeat: repeat-y;
 }
+/* Logo en filigrane fixe, centré à l'écran sur toutes les pages (indépendant du défilement /
+   de la hauteur de contenu). logo-watermark.png a un vrai fond transparent (contrairement à
+   logo.svg, qui a un fond carré plein nécessaire pour l'icône app/login) — utilisable en simple
+   background-image + opacity, sans les soucis de compatibilité de mask-image. */
+#app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('../images/logo-watermark.png');
+  background-repeat: no-repeat;
+  background-position: center 38vh;
+  background-size: min(64vw, 320px);
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: 0;
+}
 .header { display: flex; align-items: center; gap: 14px; margin: -12px -12px 16px; padding: calc(env(safe-area-inset-top) + 16px) 18px 20px; background: var(--grad); border-radius: 20px 20px 22px 22px; position: relative; }
 .header img { height: 56px; width: 56px; border-radius: 15px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); position: relative; z-index: 2; flex-shrink: 0; }
 .hdr-textwrap { min-width: 0; overflow: hidden; }
