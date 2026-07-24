@@ -31,10 +31,14 @@ function api_getAll(ss, e) {
   const tableMarque = tableMarqueSheet ? tableMarqueSheet.getDataRange().getValues() : [];
   const maillotsSheet = ss.getSheetByName("Maillots");
   const maillots = maillotsSheet ? maillotsSheet.getDataRange().getValues() : [];
+  const cartesSheet = ss.getSheetByName("Cartes");
+  const cartes = cartesSheet ? cartesSheet.getDataRange().getValues() : [];
+  const cartesReponsesSheet = ss.getSheetByName("CartesReponses");
+  const cartesReponses = cartesReponsesSheet ? cartesReponsesSheet.getDataRange().getValues() : [];
   const compositionsSheet = ss.getSheetByName("Compositions");
   const compositions = compositionsSheet ? compositionsSheet.getDataRange().getValues() : [];
   const compositionsMetaSheet = ss.getSheetByName("CompositionsMeta");
   const compositionsMeta = compositionsMetaSheet ? compositionsMetaSheet.getDataRange().getValues() : [];
 
-  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, compositions, compositionsMeta });
+  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta });
 }

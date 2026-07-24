@@ -754,6 +754,7 @@ function renderEventCard(ev, canManage, isPast, showTeamBadge) {
       ${val === 'Non' ? renderJustifBlock(id) : ""}` : `<div class="muted" style="margin-top:8px; font-size:11.5px;">Présence de ${escapeHtml(presIdentity.nom)} : ${val === "Oui" ? "✅ Présent" : val === "Non" ? "❌ Absent" : "⏳ Pas encore répondu"}</div>`)
       ) : ""}
       ${renderCompositionCardButtons(ev)}
+      ${eventEquipe(ev) === "SF1" ? renderCartesForEvent(ev, canManage) : ""}
     </div>
     ${canManage ? `<div class="ev-actions">
       ${iconBtn(ICON_EDIT, "ev-edit", `data-edit-event="${id}"`)}

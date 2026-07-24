@@ -19,6 +19,7 @@ function attachEvents() {
   attachCompositionEvents();
   attachPresenceEvents();
   attachGestionMatchsEvents();
+  attachCartesEvents();
   attachActualitesEvents();
   attachSalariesEvents();
   attachPaiementsEvents();

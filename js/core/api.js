@@ -22,6 +22,8 @@ async function fetchAll() {
     gouter = (data.gouter || []).slice(1).filter(r => r[0]);
     tableMarque = (data.tableMarque || []).slice(1).filter(r => r[0]);
     maillots = (data.maillots || []).slice(1).filter(r => r[0]);
+    cartes = (data.cartes || []).slice(1).filter(r => r[0]);
+    cartesReponses = (data.cartesReponses || []).slice(1).filter(r => r[0]);
     compositions = (data.compositions || []).slice(1).filter(r => r[0]);
     compositionsMeta = (data.compositionsMeta || []).slice(1).filter(r => r[0]);
     const parsedPE = parsePresenceEvenements(data.presenceEvenements || []);

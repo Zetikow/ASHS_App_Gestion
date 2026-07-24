@@ -27,6 +27,12 @@ const API_HANDLERS = {
   setGouter: api_setGouter,                                 // Gouter.gs
   setTableMarque: api_setTableMarque,                       // TableMarque.gs
   setMaillots: api_setMaillots,                             // Maillots.gs
+  addCarte: api_addCarte,                                   // Cartes.gs
+  deleteCarte: api_deleteCarte,                             // Cartes.gs
+  setCarteTotal: api_setCarteTotal,                         // Cartes.gs
+  addCarteOption: api_addCarteOption,                       // Cartes.gs
+  removeCarteOption: api_removeCarteOption,                 // Cartes.gs
+  setCarteReponse: api_setCarteReponse,                     // Cartes.gs
   setPresence: api_setPresence,                             // Presences.gs
   setPresenceEvenement: api_setPresenceEvenement,           // Presences.gs
   generateSeasonTrainings: api_generateSeasonTrainings,     // Evenements.gs

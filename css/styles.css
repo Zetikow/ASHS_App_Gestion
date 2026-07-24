@@ -504,6 +504,26 @@ body.login-mode .login-wrap { flex: 1; min-height: 0; }
 .cp-toggle-btn.active-yes { background: rgba(51,209,122,0.2); color: #33d17a; }
 .cp-toggle-btn.active-need { background: rgba(255,180,60,0.2); color: #ffb43c; }
 .cp-for-child { font-size: 10px; background: rgba(155,47,224,0.18); color: #c98cf0; padding: 3px 9px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 6px; }
+
+.carte-box { margin-top: 10px; background: #11141f; border-radius: 12px; padding: 12px; border: 1px solid rgba(232,184,75,0.3); }
+.carte-box.carte-apero { border-color: rgba(155,47,224,0.3); }
+.carte-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.carte-icon { font-size: 15px; }
+.carte-title { flex: 1; font-size: 12.5px; font-weight: 800; color: #fff; }
+.carte-del { color: #ff6b6b; font-size: 13px; cursor: pointer; padding: 2px 4px; }
+.carte-sub-h { font-size: 10.5px; font-weight: 800; color: #e4e8f2; text-transform: uppercase; letter-spacing: 0.3px; margin: 8px 0 6px; }
+.carte-option { display: flex; align-items: center; justify-content: space-between; background: #1a1f30; border: 1px solid #2a3350; border-radius: 8px; padding: 8px 11px; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #e8e8ee; cursor: pointer; }
+.carte-option-count { font-size: 10.5px; font-weight: 800; color: #8a8f9e; flex-shrink: 0; }
+.carte-propose { display: flex; gap: 6px; margin-top: 2px; }
+.carte-propose input { flex: 1; }
+.carte-split-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.carte-split-cell { flex: 1; background: #0d1018; border-radius: 9px; padding: 8px; text-align: center; }
+.carte-split-cell .lbl { font-size: 9px; color: #8a8f9e; text-transform: uppercase; font-weight: 800; }
+.carte-split-cell .num { font-size: 14px; font-weight: 900; color: #fff; }
+.carte-split-cell.accent { background: rgba(155,47,224,0.15); border: 1px solid rgba(155,47,224,0.35); }
+.carte-split-cell.accent .lbl { color: #c98cf0; }
+.carte-identity { margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,0.08); }
+.carte-toggle { text-align: center; font-size: 11px; font-weight: 800; color: #E8B84B; text-transform: uppercase; letter-spacing: 0.4px; padding: 10px 0; cursor: pointer; }
 @keyframes qaFadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 .add-form input, .add-form select { margin-bottom: 6px; }
 .add-form .field-label { margin: 8px 0 4px; }
