@@ -4,16 +4,19 @@
       <feGaussianBlur stdDeviation="1.6"/>
     </filter>
     <radialGradient id="haloWhite" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <rect width="480" height="960" fill="#000000"/>
 
-  <circle cx="370" cy="120" r="150" fill="url(#haloWhite)"/>
-  <circle cx="70" cy="560" r="180" fill="url(#haloWhite)"/>
-  <circle cx="400" cy="860" r="160" fill="url(#haloWhite)"/>
+  <circle cx="30" cy="50" r="180" fill="url(#haloWhite)"/>
+  <circle cx="450" cy="140" r="180" fill="url(#haloWhite)"/>
+  <circle cx="60" cy="480" r="200" fill="url(#haloWhite)"/>
+  <circle cx="430" cy="560" r="200" fill="url(#haloWhite)"/>
+  <circle cx="40" cy="860" r="180" fill="url(#haloWhite)"/>
+  <circle cx="440" cy="920" r="180" fill="url(#haloWhite)"/>
 
   <g fill="none" stroke-linecap="round" filter="url(#neonBlur)">
     <line x1="70" y1="140" x2="180" y2="205" stroke="#9B2FE0" stroke-opacity="0.4" stroke-width="2.2"/>
