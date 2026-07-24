@@ -560,8 +560,8 @@ function renderAgenda() {
   const rawDefaultTeam = isSalarie ? "Toutes" : (hasRole("Admin") ? (switcherTeams[0] || "SF1") : (primaryEquipe()));
   const defaultTeam = ((rawDefaultTeam === "U17M1" || rawDefaultTeam === "U17M2") && switcherTeams.includes("U17")) ? "U17" : rawDefaultTeam;
   const activeTeam = isSalarie ? "Toutes" : ((window.__agendaTeamView && switcherTeams.includes(window.__agendaTeamView)) ? window.__agendaTeamView : defaultTeam);
-  const equipeLabel = activeTeam === "Toutes" ? "du club (repas, soirées, événements communs)" : (activeTeam === "U17" ? "de U17 (M1 et M2, entraînements communs)" : `de l'équipe ${activeTeam}`);
-  let html = `<div class="page-title">Agenda</div><div class="page-sub">Matchs, entraînements et événements ${equipeLabel}.</div>`;
+  const equipeLabel = activeTeam === "Toutes" ? "du club" : (activeTeam === "U17" ? "U17 (M1 et M2)" : activeTeam);
+  let html = `<div class="page-title">Agenda</div><div class="page-sub">Événements ${equipeLabel}.</div>`;
 
   if (canManage) {
     html += `<button class="btn add-btn-primary" id="toggle-add-event">${showAddEvent ? "− Fermer" : "+ Ajouter un événement"}</button>`;
