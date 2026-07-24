@@ -173,7 +173,10 @@ tr.total-row td { font-weight: 800; background: #1a1710; color: #ffd23f; }
 #app { border: 1px solid rgba(201,140,240,0.28); border-radius: 20px; animation: appShimmer 3.2s ease-in-out infinite; }
 
 body.login-mode { padding-bottom: 0; }
-body.login-mode #app { min-height: 100vh; display: flex; flex-direction: column; }
+/* .login-wrap a déjà son propre fond (bg-ashs.svg en cover) : garder aussi celui de #app en
+   dessous (tuilé à une échelle différente) donnait l'impression de voir le blason en double,
+   à deux tailles différentes. */
+body.login-mode #app { min-height: 100vh; display: flex; flex-direction: column; background-image: none; }
 body.login-mode .login-wrap { flex: 1; min-height: 0; }
 
 @keyframes appShimmer {
