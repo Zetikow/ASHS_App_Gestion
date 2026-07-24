@@ -19,6 +19,25 @@ function carteReponseFor(carteId, nom, champ) {
   return cartesReponses.find(r => r[0] === carteId && r[1] === nom && r[2] === champ) || null;
 }
 
+// Ligne compacte affichée par défaut (window.__carteExpanded[id] indique le dépli) — évite que
+// l'événement devienne trop grand quand plusieurs cartes s'accumulent dessous.
+function renderCarteCollapsed(id, icon, titre, summary) {
+  return `<div class="carte-box carte-collapsed" data-toggle-carte="${escapeHtml(id)}">
+    <span class="carte-icon">${icon}</span>
+    <div class="carte-collapsed-text"><div class="carte-title">${escapeHtml(titre)}</div><div class="carte-summary">${escapeHtml(summary)}</div></div>
+    <span class="carte-chevron">▾</span>
+  </div>`;
+}
+
+function carteHeadHtml(id, icon, titre, canManage) {
+  return `<div class="carte-head" data-toggle-carte="${escapeHtml(id)}">
+    <span class="carte-icon">${icon}</span>
+    <span class="carte-title">${escapeHtml(titre)}</span>
+    <span class="carte-chevron">▴</span>
+    ${canManage ? `<span class="carte-del" data-delete-carte="${escapeHtml(id)}">✕</span>` : ""}
+  </div>`;
+}
+
 async function addCarteApi(eventId, type, titre, options, total) {
   try {
     const params = new URLSearchParams({ action: "addCarte", eventId, type, titre, options: options.join("|"), total: total || "", authNom: session.nom, authCode: session.code });
@@ -90,8 +109,17 @@ function renderRepasCard(carte, identities, canManage) {
   const total = parseFloat(carte[5]) || 0;
   const perPerson = participants.length ? total / participants.length : 0;
 
+  const leadOption = options.slice().sort((a, b) => votes.filter(v => v[3] === b).length - votes.filter(v => v[3] === a).length)[0];
+  const leadCount = leadOption ? votes.filter(v => v[3] === leadOption).length : 0;
+  const summary = perPerson
+    ? `${perPerson.toFixed(2)} €/pers · ${participants.length} participant${participants.length > 1 ? "s" : ""}`
+    : (leadCount > 0 ? `${leadOption} en tête (${leadCount} vote${leadCount > 1 ? "s" : ""})` : "Aucune réponse pour l'instant");
+
+  const expanded = !!(window.__carteExpanded && window.__carteExpanded[id]);
+  if (!expanded) return renderCarteCollapsed(id, "🍽", titre || "Repas d'après match", summary);
+
   let html = `<div class="carte-box carte-repas">
-    <div class="carte-head"><span class="carte-icon">🍽</span><span class="carte-title">${escapeHtml(titre || "Repas d'après match")}</span>${canManage ? `<span class="carte-del" data-delete-carte="${escapeHtml(id)}">✕</span>` : ""}</div>
+    ${carteHeadHtml(id, "🍽", titre || "Repas d'après match", canManage)}
     <div class="carte-sub-h">Sondage du lieu</div>`;
 
   options.forEach(opt => {
@@ -104,13 +132,12 @@ function renderRepasCard(carte, identities, canManage) {
 
   html += `<div class="carte-propose"><input type="text" placeholder="Proposer un lieu..." id="carte-propose-${id}" /><button type="button" class="btn secondary" style="width:auto; padding:8px 12px;" data-carte-propose="${escapeHtml(id)}">Ajouter</button></div>`;
 
-  html += `<div class="carte-sub-h" style="border-top:1px solid #1a2030; padding-top:10px;">Répartition de l'addition</div>
-    <div class="carte-split-row">
-      <div class="carte-split-cell"><div class="lbl">Total</div>${canManage
-        ? `<input type="number" min="0" step="0.5" value="${total || ""}" style="text-align:center; font-size:14px; padding:6px;" data-carte-total="${escapeHtml(id)}" />`
-        : `<div class="num">${total} €</div>`}</div>
-      <div class="carte-split-cell"><div class="lbl">Participants</div><div class="num">${participants.length}</div></div>
-      <div class="carte-split-cell accent"><div class="lbl">Par pers.</div><div class="num">${perPerson ? perPerson.toFixed(2) : "—"} €</div></div>
+  html += `<div class="carte-split-line">
+      <span class="lbl">Total</span>${canManage
+        ? `<input type="number" min="0" step="0.5" value="${total || ""}" class="carte-total-input" data-carte-total="${escapeHtml(id)}" />`
+        : `<span class="num">${total}</span>`} €
+      <span class="lbl">÷ ${participants.length} pers =</span>
+      <span class="num accent">${perPerson ? perPerson.toFixed(2) : "—"} €</span>
     </div>`;
 
   identities.forEach(idt => {
@@ -132,8 +159,12 @@ function renderAperoCard(carte, identities, canManage) {
   const options = carteOptions(carte);
   const signups = carteReponsesFor(id, "choix");
 
+  const summary = signups.length > 0 ? `${signups.length} inscrit${signups.length > 1 ? "s" : ""}` : "Aucune inscription pour l'instant";
+  const expanded = !!(window.__carteExpanded && window.__carteExpanded[id]);
+  if (!expanded) return renderCarteCollapsed(id, "🥂", titre || "Qui amène quoi", summary);
+
   let html = `<div class="carte-box carte-apero">
-    <div class="carte-head"><span class="carte-icon">🥂</span><span class="carte-title">${escapeHtml(titre || "Qui amène quoi")}</span>${canManage ? `<span class="carte-del" data-delete-carte="${escapeHtml(id)}">✕</span>` : ""}</div>
+    ${carteHeadHtml(id, "🥂", titre || "Qui amène quoi", canManage)}
     <div class="carte-sub-h">Qui amène quoi</div>`;
 
   if (signups.length === 0) {
@@ -219,7 +250,20 @@ function attachCartesEvents() {
   };
 
   document.querySelectorAll("[data-delete-carte]").forEach(el => {
-    el.onclick = () => { if (confirm("Supprimer cette carte ?")) deleteCarteApi(el.dataset.deleteCarte); };
+    el.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm("Supprimer cette carte ?")) deleteCarteApi(el.dataset.deleteCarte);
+    };
+  });
+
+  document.querySelectorAll("[data-toggle-carte]").forEach(el => {
+    el.onclick = () => {
+      vibrate();
+      const id = el.dataset.toggleCarte;
+      window.__carteExpanded = window.__carteExpanded || {};
+      window.__carteExpanded[id] = !window.__carteExpanded[id];
+      render();
+    };
   });
 
   document.querySelectorAll("[data-carte-total]").forEach(el => {
