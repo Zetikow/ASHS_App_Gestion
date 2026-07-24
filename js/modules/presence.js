@@ -217,7 +217,7 @@ function renderPresenceEventCard(ev, isPast, activeTeam) {
 
 function computePresenceByType(nom, equipe) {
   const relevantEvents = (equipe && equipe !== "Toutes")
-    ? evenements.filter(ev => eventEquipe(ev) === equipe)
+    ? evenements.filter(ev => eventVisibleForTeam(ev, equipe))
     : evenements;
   return ["Match", "Entraînement", "Repas"].map(t => {
     const evs = relevantEvents.filter(ev => (ev[3] || "") === t);

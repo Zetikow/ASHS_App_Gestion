@@ -143,7 +143,11 @@ function renderProfilPage() {
   }
 
   if (vue === "coach") {
-    const coachTeams = equipesForRole("Coach");
+    // Un Coach qui encadre à la fois U17M1 et U17M2 (entraînements communs) a un seul bloc
+    // récapitulatif mutualisé "U17" plutôt qu'un bouton pour basculer entre deux vues quasi
+    // identiques — voir coalesceU17 (agenda.js) et rosterForEquipe/eventVisibleForTeam pour la
+    // pseudo-équipe "U17".
+    const coachTeams = coalesceU17(equipesForRole("Coach"));
     const preferredCoachTeam = coachTeams[0] || primaryEquipe();
     const defaultCoachTeam = coachTeams.includes(preferredCoachTeam) ? preferredCoachTeam : (coachTeams[0] || "SF1");
     const chosenCoachTeam = (window.__profilCoachTeamView && coachTeams.includes(window.__profilCoachTeamView)) ? window.__profilCoachTeamView : defaultCoachTeam;
@@ -156,7 +160,9 @@ function renderProfilPage() {
     html += renderAverageCard(chosenCoachTeam, false);
     html += renderAverageCard(chosenCoachTeam, true);
 
-    const mesJoueurs = comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && rowEquipesForRole(c, "Joueur").indexOf(chosenCoachTeam) !== -1);
+    const mesJoueurs = chosenCoachTeam === "U17"
+      ? comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && (rowEquipesForRole(c, "Joueur").indexOf("U17M1") !== -1 || rowEquipesForRole(c, "Joueur").indexOf("U17M2") !== -1))
+      : comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && rowEquipesForRole(c, "Joueur").indexOf(chosenCoachTeam) !== -1);
     const showAll = !!window.__profilJoueursExpanded;
     const visible = showAll ? mesJoueurs : mesJoueurs.slice(0, 4);
     html += `<div class="card">

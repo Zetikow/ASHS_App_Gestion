@@ -342,8 +342,12 @@ function eventEquipe(ev) {
 }
 // Les entraînements U17M1/U17M2 sont communs aux deux équipes (elles s'entraînent ensemble) —
 // seuls les matchs restent propres à chaque équipe. Ne concerne pas les autres équipes du club.
+// "U17" (teamView) est une pseudo-équipe qui représente la vue mutualisée M1+M2 (agenda et
+// stats de présence côté coach) : tout événement U17M1 ou U17M2, entraînement comme match, y
+// est visible — voir agendaSwitcherTeams() pour où cette pseudo-équipe est proposée.
 function eventVisibleForTeam(ev, teamView) {
   const eq = eventEquipe(ev);
+  if (teamView === "U17") return U17_TEAMS.includes(eq) || eq === "Toutes";
   if (eq === teamView || eq === "Toutes") return true;
   if (isEntrainement(ev) && U17_TEAMS.includes(teamView) && U17_TEAMS.includes(eq)) return true;
   return false;
@@ -527,16 +531,36 @@ function renderGenerateTrainingsForm(equipe) {
   </div>`;
 }
 
+// Remplace ["U17M1","U17M2"] par une seule pseudo-équipe "U17" dans une liste d'équipes,
+// quand les deux sont présentes (sinon laisse tel quel) — utilisé pour l'Agenda et le Profil
+// (vue Coach), où U17M1/U17M2 doivent apparaître comme une vue mutualisée unique puisqu'ils
+// s'entraînent ensemble (seuls les matchs restent propres à chaque équipe, voir
+// eventVisibleForTeam et renderEventCard).
+function coalesceU17(teams) {
+  if (teams.indexOf("U17M1") === -1 || teams.indexOf("U17M2") === -1) return teams;
+  const out = [];
+  let inserted = false;
+  teams.forEach(t => {
+    if (t === "U17M1" || t === "U17M2") {
+      if (!inserted) { out.push("U17"); inserted = true; }
+    } else {
+      out.push(t);
+    }
+  });
+  return out;
+}
+
 function renderAgenda() {
   // "Salarié pur" = sans autre rôle lié à une équipe (Joueur/Coach/Admin). Un compte qui cumule
   // Salarié + un autre rôle (ex: Joueur SF1 + Coach U17 + Admin + Salarié) garde son accès complet
   // aux équipes — seul un Salarié sans aucun autre rôle est cantonné à la vue "Toutes équipes".
   const isSalarie = hasRole("Salarié") && !hasRole("Joueur") && !hasRole("Coach") && !hasRole("Admin");
   const canManage = hasRole("Coach") || hasRole("Admin") || isSalarie;
-  const switcherTeams = isSalarie ? [] : equipesForSwitcher();
-  const defaultTeam = isSalarie ? "Toutes" : (hasRole("Admin") ? (switcherTeams[0] || "SF1") : (primaryEquipe()));
+  const switcherTeams = isSalarie ? [] : coalesceU17(equipesForSwitcher());
+  const rawDefaultTeam = isSalarie ? "Toutes" : (hasRole("Admin") ? (switcherTeams[0] || "SF1") : (primaryEquipe()));
+  const defaultTeam = ((rawDefaultTeam === "U17M1" || rawDefaultTeam === "U17M2") && switcherTeams.includes("U17")) ? "U17" : rawDefaultTeam;
   const activeTeam = isSalarie ? "Toutes" : ((window.__agendaTeamView && switcherTeams.includes(window.__agendaTeamView)) ? window.__agendaTeamView : defaultTeam);
-  const equipeLabel = activeTeam === "Toutes" ? "du club (repas, soirées, événements communs)" : `de l'équipe ${activeTeam}`;
+  const equipeLabel = activeTeam === "Toutes" ? "du club (repas, soirées, événements communs)" : (activeTeam === "U17" ? "de U17 (M1 et M2, entraînements communs)" : `de l'équipe ${activeTeam}`);
   let html = `<div class="page-title">Agenda</div><div class="page-sub">Matchs, entraînements et événements ${equipeLabel}.</div>`;
 
   if (canManage) {
@@ -577,7 +601,7 @@ function renderAgenda() {
         <input id="ev-lieu" type="text" value="${DEFAULT_VENUE_NAME}" />
         ${showEquipeSelect ? `<label class="field-label">Équipe</label>
         <select id="ev-equipe">
-          ${equipeOptions.map(t => `<option value="${t}" ${activeTeam === t ? "selected" : ""}>${t}</option>`).join("")}
+          ${equipeOptions.map(t => `<option value="${t}" ${(activeTeam === t || (activeTeam === "U17" && t === "U17M1")) ? "selected" : ""}>${t}</option>`).join("")}
           ${hasRole("Admin") ? `<option value="Toutes" ${activeTeam === "Toutes" ? "selected" : ""}>Toutes (club entier)</option>` : ""}
         </select>` : ""}
         <button class="btn" id="submit-add-event" style="margin-top:4px;">Enregistrer l'événement</button>
@@ -609,13 +633,13 @@ function renderAgenda() {
         html += `<div class="section-h">${label}</div>`;
         lastLabel = label;
       }
-      html += renderEventCard(ev, canManage);
+      html += renderEventCard(ev, canManage, false, activeTeam === "U17");
     });
   }
 
   if (past.length > 0) {
     html += `<div class="section-h">Passés</div>`;
-    past.slice(0, 8).forEach(ev => { html += renderEventCard(ev, canManage, true); });
+    past.slice(0, 8).forEach(ev => { html += renderEventCard(ev, canManage, true, activeTeam === "U17"); });
   }
 
   if (window.__compositionMatchId) html += renderCompositionEditor(window.__compositionMatchId);
@@ -645,7 +669,7 @@ function renderJustifBlock(eventId) {
   </div>`;
 }
 
-function renderEventCard(ev, canManage, isPast) {
+function renderEventCard(ev, canManage, isPast, showTeamBadge) {
   const [id, date, heure, type, titre, lieu, equipe, score] = ev;
   const d = eventDateObj(ev);
   const presIdentity = myPresenceIdentity();
@@ -715,6 +739,7 @@ function renderEventCard(ev, canManage, isPast) {
     <div class="ev-info">
       <div class="ev-header-row">
         <div class="ev-title-big">${escapeHtml(displayTitre)}</div>
+        ${showTeamBadge && typeClass(type) === "match" ? `<span class="badge" style="margin-right:4px;">${escapeHtml(equipe || "")}</span>` : ""}
         <span class="ev-type-big ${typeClass(type)}">${type || "Événement"}</span>
       </div>
       <div class="ev-date-full">${dateFr}${heureFmt ? " · " + heureFmt : ""}</div>
@@ -905,8 +930,12 @@ function attachAgendaEvents() {
     const heureJeudi = readHeureSelect("gen-jeudi-heure");
     const lieuJeudi = document.getElementById("gen-jeudi-lieu").value;
     if (!startMardi && !startJeudi) { alert("Renseigne au moins une date de départ (mardi ou jeudi)."); return; }
+    // "U17" est une vue mutualisée M1+M2, pas une vraie équipe en base — les entraînements
+    // générés doivent être tagués avec une équipe réelle (peu importe laquelle des deux, ils
+    // sont visibles des deux côtés, voir eventVisibleForTeam).
+    const apiEquipe = equipe === "U17" ? "U17M1" : equipe;
     if (confirm(`Générer les entraînements ${equipe} pour toute la saison ? Les entraînements déjà existants pour cette équipe ne seront pas dupliqués.`)) {
-      generateSeasonTrainingsApi(equipe, startMardi, heureMardi, lieuMardi, startJeudi, heureJeudi, lieuJeudi);
+      generateSeasonTrainingsApi(apiEquipe, startMardi, heureMardi, lieuMardi, startJeudi, heureJeudi, lieuJeudi);
     }
   };
 

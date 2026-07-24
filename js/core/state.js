@@ -8,7 +8,7 @@ const LOGO_DATA_URI = "images/logo.svg";
 const SESSION_KEY = "ashs-session"; // {nom, role, code, equipe}
 const APP_VERSION_KEY = "ashs-app-version";
 const LAST_USER_KEY = "ashs-last-user"; // simple mémorisation du dernier nom connecté sur cet appareil (pas le code)
-const APP_VERSION = "2026-07-24-7"; // À incrémenter à chaque mise à jour déployée
+const APP_VERSION = "2026-07-24-8"; // À incrémenter à chaque mise à jour déployée
 // À COMPLÉTER si la saison ASHS ne suit pas le calendrier standard septembre-juin.
 const SEASON_START = new Date(2026, 8, 1);  // 1er septembre 2026
 const SEASON_END = new Date(2027, 5, 30);   // 30 juin 2027
@@ -184,7 +184,18 @@ function findCompteRow(nom) {
 }
 
 // Liste des joueurs d'une équipe donnée, à partir des comptes réels (plus de dépendance à PLAYERS).
+// "U17" = pseudo-équipe mutualisée M1+M2 (voir eventVisibleForTeam dans agenda.js) : renvoie
+// l'union des deux effectifs, sans doublon.
 function rosterForEquipe(equipe) {
+  if (equipe === "U17") {
+    const set = new Set();
+    comptes.slice(1).forEach(c => {
+      if (!rowHasRole(c, "Joueur")) return;
+      const teams = rowEquipesForRole(c, "Joueur");
+      if (teams.indexOf("U17M1") !== -1 || teams.indexOf("U17M2") !== -1) set.add(c[0]);
+    });
+    return [...set];
+  }
   return comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && rowEquipesForRole(c, "Joueur").indexOf(equipe) !== -1).map(c => c[0]);
 }
 
