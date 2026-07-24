@@ -719,7 +719,7 @@ function renderEventCard(ev, canManage, isPast, showTeamBadge) {
     </div>`;
   }
 
-  const dateFr = eventDateObj(ev).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+  const dateFr = d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
   const heureFmt = formatHeure(ev);
   const displayTitre = typeClass(type) === "match" ? formatMatchDisplay(titre, lieu).label : (titre || "Sans titre");
 
@@ -734,15 +734,14 @@ function renderEventCard(ev, canManage, isPast, showTeamBadge) {
     }
   }
 
-  return `<div class="ev-card ${outcomeClass}" style="${isPast && !outcomeClass ? 'opacity:0.55;' : ''}">    <div class="ev-date"><div class="ev-day">${d.getDate()}</div><div class="ev-month">${d.toLocaleDateString("fr-FR", { month: "short" })}</div></div>
-    <div class="ev-divider"></div>
+  return `<div class="ev-card ${outcomeClass}" style="${isPast && !outcomeClass ? 'opacity:0.55;' : ''}">
     <div class="ev-info">
+      <div class="ev-date-top">${dateFr}${heureFmt ? " · " + heureFmt : ""}</div>
       <div class="ev-header-row">
         <div class="ev-title-big">${escapeHtml(displayTitre)}</div>
         ${showTeamBadge && typeClass(type) === "match" ? `<span class="badge" style="margin-right:4px;">${escapeHtml(equipe || "")}</span>` : ""}
         <span class="ev-type-big ${typeClass(type)}">${type || "Événement"}</span>
       </div>
-      <div class="ev-date-full">${dateFr}${heureFmt ? " · " + heureFmt : ""}</div>
       <div class="ev-meta">${lieu || ""}${canManage ? (lieu ? " · " : "") + presentCount + " présents / " + absentCount + " absents" : ""}</div>
       ${(!isPast && !hasRole("Bénévole")) ? (
         compositionNonSelected(ev, presIdentity.nom)
