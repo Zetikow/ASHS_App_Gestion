@@ -1,0 +1,19 @@
+{
+  "name": "ASHS",
+  "short_name": "ASHS",
+  "description": "Application de gestion AS Hoenheim Sports",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08080a",
+  "theme_color": "#08080a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "images/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
