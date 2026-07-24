@@ -8,7 +8,7 @@ const LOGO_DATA_URI = "images/logo.svg";
 const SESSION_KEY = "ashs-session"; // {nom, role, code, equipe}
 const APP_VERSION_KEY = "ashs-app-version";
 const LAST_USER_KEY = "ashs-last-user"; // simple mémorisation du dernier nom connecté sur cet appareil (pas le code)
-const APP_VERSION = "2026-07-24-11"; // À incrémenter à chaque mise à jour déployée
+const APP_VERSION = "2026-07-24-13"; // À incrémenter à chaque mise à jour déployée
 // À COMPLÉTER si la saison ASHS ne suit pas le calendrier standard septembre-juin.
 const SEASON_START = new Date(2026, 8, 1);  // 1er septembre 2026
 const SEASON_END = new Date(2027, 5, 30);   // 30 juin 2027
@@ -22,6 +22,9 @@ let presenceEvenements = {}; // { eventId_nom: "Oui"/"Non" }
 let presenceJustifications = {}; // { eventId_nom: "texte du motif" }
 let actualites = []; // [[id, titre, scope, texte, auteur, date], ...] (+ header row)
 let covoiturage = []; // [[eventId, nom, jeConduit, places, besoinPlace], ...] (+ header row)
+let gouter = []; // [[eventId, nom, quoi], ...] (+ header row) — matchs à domicile
+let tableMarque = []; // [[eventId, nom, disponible], ...] (+ header row) — domicile et extérieur
+let maillots = []; // [[eventId, nom, pris], ...] (+ header row) — nombre de fois = compte des lignes par joueur
 let compositions = []; // [[matchId, nom, zone, libreX, libreY], ...] — zone = poste fixe (GB/AiG/.../Banc5) ou "Libre"
 let compositionsMeta = []; // [[matchId, publie], ...] — publie = "1" une fois visible aux joueurs/parents
 

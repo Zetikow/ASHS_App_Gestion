@@ -24,6 +24,9 @@ const API_HANDLERS = {
   getAllSupportRequests: api_getAllSupportRequests,         // Support.gs
   replySupportMessage: api_replySupportMessage,             // Support.gs
   setCovoiturage: api_setCovoiturage,                       // Covoiturage.gs
+  setGouter: api_setGouter,                                 // Gouter.gs
+  setTableMarque: api_setTableMarque,                       // TableMarque.gs
+  setMaillots: api_setMaillots,                             // Maillots.gs
   setPresence: api_setPresence,                             // Presences.gs
   setPresenceEvenement: api_setPresenceEvenement,           // Presences.gs
   generateSeasonTrainings: api_generateSeasonTrainings,     // Evenements.gs

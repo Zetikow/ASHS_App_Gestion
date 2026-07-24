@@ -377,7 +377,7 @@ function getTabsForRole() {
   const totalIfAllMain = tabs.length + extraCandidates.length + (hasCovoit ? 1 : 0) + 1;
   if (totalIfAllMain <= 6) {
     extraCandidates.forEach(e => tabs.push({ ...e, main: true }));
-    if (hasCovoit) tabs.push({ id: "covoiturage", label: "Covoiturage", main: true });
+    if (hasCovoit) tabs.push({ id: "covoiturage", label: "Gestion des matchs", main:true });
     tabs.push({ id: "profil", label: "Profil", main: true });
     return tabs;
   }
@@ -388,7 +388,7 @@ function getTabsForRole() {
   }
 
   const extra = extraCandidates.slice();
-  if (hasCovoit) extra.push({ id: "covoiturage", label: "Covoiturage", main: false });
+  if (hasCovoit) extra.push({ id: "covoiturage", label: "Gestion des matchs", main:false });
 
   // Un seul élément dans "Plus" -> inutile de le cacher derrière un clic, on l'affiche directement.
   if (extra.length === 1) {
@@ -486,7 +486,7 @@ function render() {
   else if (currentPage === "profil") html += renderProfilPage();
   else if (currentPage === "actualites") html += renderActualitesPage();
   else if (currentPage === "salaries") html += renderSalariesPage();
-  else if (currentPage === "covoiturage") html += renderCovoiturageePage();
+  else if (currentPage === "covoiturage") html += renderGestionMatchsPage();
   else if (currentPage === "gallery") html += renderGalleryPage();
   else if (currentPage === "photoview") html += renderPhotoViewPage();
   else if (currentPage === "guide") html += renderGuidePage();

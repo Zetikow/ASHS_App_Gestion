@@ -25,10 +25,16 @@ function api_getAll(ss, e) {
   const actualites = actualitesSheet ? actualitesSheet.getDataRange().getValues() : [];
   const covoiturageSheet = ss.getSheetByName("Covoiturage");
   const covoiturage = covoiturageSheet ? covoiturageSheet.getDataRange().getValues() : [];
+  const gouterSheet = ss.getSheetByName("Gouter");
+  const gouter = gouterSheet ? gouterSheet.getDataRange().getValues() : [];
+  const tableMarqueSheet = ss.getSheetByName("TableMarque");
+  const tableMarque = tableMarqueSheet ? tableMarqueSheet.getDataRange().getValues() : [];
+  const maillotsSheet = ss.getSheetByName("Maillots");
+  const maillots = maillotsSheet ? maillotsSheet.getDataRange().getValues() : [];
   const compositionsSheet = ss.getSheetByName("Compositions");
   const compositions = compositionsSheet ? compositionsSheet.getDataRange().getValues() : [];
   const compositionsMetaSheet = ss.getSheetByName("CompositionsMeta");
   const compositionsMeta = compositionsMetaSheet ? compositionsMetaSheet.getDataRange().getValues() : [];
 
-  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, compositions, compositionsMeta });
+  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, compositions, compositionsMeta });
 }

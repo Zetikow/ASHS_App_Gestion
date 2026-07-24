@@ -19,6 +19,9 @@ async function fetchAll() {
     evenements = (data.evenements || []).slice(1).filter(r => r[0]);
     actualites = (data.actualites || []).slice(1).filter(r => r[0]);
     covoiturage = (data.covoiturage || []).slice(1).filter(r => r[0]);
+    gouter = (data.gouter || []).slice(1).filter(r => r[0]);
+    tableMarque = (data.tableMarque || []).slice(1).filter(r => r[0]);
+    maillots = (data.maillots || []).slice(1).filter(r => r[0]);
     compositions = (data.compositions || []).slice(1).filter(r => r[0]);
     compositionsMeta = (data.compositionsMeta || []).slice(1).filter(r => r[0]);
     const parsedPE = parsePresenceEvenements(data.presenceEvenements || []);
