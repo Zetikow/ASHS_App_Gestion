@@ -61,6 +61,18 @@ function compositionIsPublished(matchId) {
 // Un joueur qui a répondu Présent mais n'a été retenu sur aucun des 12 postes une fois la
 // composition publiée voit un badge verrouillé "Non sélectionné" à la place du toggle
 // Présent/Absent habituel — voir renderEventCard (agenda.js).
+// Nombre de matchs U17M1 (composition publiée) où ce joueur a été aligné — ne compte que pour
+// un joueur enregistré U17M2 (règle de "brûlage" : au-delà de BRULAGE_MAX_MATCHES, il ne peut
+// plus redescendre jouer en M2). Voir renderProfilPage (profil.js) pour l'affichage.
+function bruleMatchesFor(nom) {
+  return evenements.filter(ev =>
+    eventEquipe(ev) === "U17M1" &&
+    typeClass(ev[3]) === "match" &&
+    compositionIsPublished(ev[0]) &&
+    Object.values(compositionSlotsFor(ev[0])).includes(nom)
+  ).length;
+}
+
 function compositionNonSelected(ev, nom) {
   if (!U17_TEAMS.includes(eventEquipe(ev)) || typeClass(ev[3]) !== "match") return false;
   const matchId = ev[0];

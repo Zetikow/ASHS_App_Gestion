@@ -58,6 +58,9 @@ const TEAMS = ["SF1", "U17M1", "U17M2"];
 // composition d'équipe, suivi des brûlages) — voir eventVisibleForTeam (agenda.js) et
 // compositionRoster (composition.js).
 const U17_TEAMS = ["U17M1", "U17M2"];
+// Nombre max de matchs qu'un joueur U17M2 peut jouer avec l'U17M1 avant de ne plus pouvoir
+// redescendre en M2 (règle fédérale de "brûlage") — voir bruleMatchesFor (composition.js).
+const BRULAGE_MAX_MATCHES = 10;
 
 // Adresse mail de relance visible sur Profil/Accueil pour permettre aux joueurs de la renseigner.
 const EMAIL_REMINDER_UI_VISIBLE = true;

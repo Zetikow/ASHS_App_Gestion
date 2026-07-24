@@ -167,12 +167,20 @@ function renderProfilPage() {
     const visible = showAll ? mesJoueurs : mesJoueurs.slice(0, 4);
     html += `<div class="card">
       <div class="section-h">Mes joueurs (${mesJoueurs.length})</div>
-      ${mesJoueurs.length === 0 ? `<div class="muted">Aucun joueur trouvé pour cette équipe.</div>` : visible.map(j => `
+      ${mesJoueurs.length === 0 ? `<div class="muted">Aucun joueur trouvé pour cette équipe.</div>` : visible.map(j => {
+        // Suivi des brûlages : seuls les joueurs enregistrés U17M2 sont concernés (matchs joués
+        // avec l'U17M1, voir bruleMatchesFor dans composition.js).
+        const isU17M2 = rowEquipesForRole(j, "Joueur").indexOf("U17M2") !== -1;
+        const brule = isU17M2 ? bruleMatchesFor(j[0]) : null;
+        const bruleColor = brule === null ? "" : (brule >= BRULAGE_MAX_MATCHES ? "#ff5a5a" : (brule >= BRULAGE_MAX_MATCHES - 2 ? "#ffb43c" : "#33d17a"));
+        return `
         <div class="mesjoueurs-row">
           <div class="cn-avatar" style="width:32px; height:32px; font-size:11px;">${getInitials(j[0])}</div>
           <div class="mesjoueurs-name">${j[0]}</div>
+          ${brule !== null ? `<span class="badge" style="color:${bruleColor}; border-color:${bruleColor}66;">${brule}/${BRULAGE_MAX_MATCHES} en M1</span>` : ""}
           ${j[3] ? `<span class="badge">${String(j[3]).split(",")[0]}</span>` : ""}
-        </div>`).join("")}
+        </div>`;
+      }).join("")}
       ${mesJoueurs.length > 4 ? `<div class="expand-toggle" data-toggle-profil-joueurs="1">${showAll ? "Réduire ▲" : "Voir les autres ▾"}</div>` : ""}
     </div>`;
   } else {
