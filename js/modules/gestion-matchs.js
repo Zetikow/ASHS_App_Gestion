@@ -260,7 +260,9 @@ function renderMaillotsSection(activeTeam) {
 }
 
 function renderGestionMatchsPage() {
-  const teams = myCarpoolTeams();
+  // La SF1 n'est pas concernée par cette page (covoiturage/goûter/table de marque/maillots ne
+  // s'appliquent qu'aux équipes U17) — voir cartes.js pour l'équivalent SF1 (repas/apéro).
+  const teams = myCarpoolTeams().filter(t => t !== "SF1");
   if (teams.length === 0) {
     return `<div class="page-title">Gestion des matchs</div><div class="card"><div class="muted">Aucune équipe concernée pour ce compte.</div></div>`;
   }
@@ -268,8 +270,8 @@ function renderGestionMatchsPage() {
   const section = GESTION_MATCHS_SECTIONS.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : "covoiturage";
 
   let html = `<div class="page-title">Gestion des matchs</div><div class="page-sub">Covoiturage, goûter, table de marque et maillots — équipe ${escapeHtml(activeTeam)}</div>`;
-  html += `<div class="team-switch-row">${GESTION_MATCHS_SECTIONS.map(s => `<button type="button" class="team-switch-btn ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}</div>`;
   html += renderTeamSwitcher(teams, activeTeam, "covoit-team");
+  html += `<div class="team-switch-row">${GESTION_MATCHS_SECTIONS.map(s => `<button type="button" class="team-switch-btn ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}</div>`;
 
   if (section === "covoiturage") html += renderCovoiturageSection(activeTeam);
   else if (section === "gouter") html += renderGouterSection(activeTeam);
