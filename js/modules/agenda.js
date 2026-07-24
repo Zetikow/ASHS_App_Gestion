@@ -544,6 +544,13 @@ function renderAgenda() {
     if (showAddEvent) {
       const effectiveType = window.__addEventType || (isSalarie ? "Repas" : "Match");
       const isMatchType = effectiveType === "Match";
+      // Un entraînement U17 est commun aux deux équipes (voir eventVisibleForTeam) : inutile de
+      // demander M1 ou M2, ça n'a pas d'incidence sur qui le voit. Un match, en revanche, ne
+      // concerne qu'une seule des deux équipes — on demande alors explicitement laquelle, y
+      // compris à un Coach (pas seulement l'Admin) s'il encadre les deux équipes U17.
+      const myCoachTeams = (session.roles || []).filter(r => r.role === "Coach").map(r => r.equipe);
+      const showEquipeSelect = hasRole("Admin") || (isMatchType && myCoachTeams.length > 1);
+      const equipeOptions = hasRole("Admin") ? TEAMS : myCoachTeams;
       html += `<div class="add-form">
         <label class="field-label">Date</label>
         ${dateSelectHtml("ev-date", "")}
@@ -568,10 +575,10 @@ function renderAgenda() {
         `}
         <label class="field-label">Lieu</label>
         <input id="ev-lieu" type="text" value="${DEFAULT_VENUE_NAME}" />
-        ${(hasRole("Admin")) ? `<label class="field-label">Équipe</label>
+        ${showEquipeSelect ? `<label class="field-label">Équipe</label>
         <select id="ev-equipe">
-          ${TEAMS.map(t => `<option value="${t}" ${activeTeam === t ? "selected" : ""}>${t}</option>`).join("")}
-          <option value="Toutes" ${activeTeam === "Toutes" ? "selected" : ""}>Toutes (club entier)</option>
+          ${equipeOptions.map(t => `<option value="${t}" ${activeTeam === t ? "selected" : ""}>${t}</option>`).join("")}
+          ${hasRole("Admin") ? `<option value="Toutes" ${activeTeam === "Toutes" ? "selected" : ""}>Toutes (club entier)</option>` : ""}
         </select>` : ""}
         <button class="btn" id="submit-add-event" style="margin-top:4px;">Enregistrer l'événement</button>
       </div>`;

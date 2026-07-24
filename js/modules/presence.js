@@ -10,7 +10,7 @@
 
 function computeAverages(equipe, monthOnly) {
   const roster = rosterForEquipe(equipe);
-  let evs = evenements.filter(ev => eventEquipe(ev) === equipe);
+  let evs = evenements.filter(ev => eventVisibleForTeam(ev, equipe));
   if (monthOnly) {
     const now = new Date();
     evs = evs.filter(ev => {
@@ -65,7 +65,7 @@ function renderAverageCard(equipe, monthOnly) {
 // cours ou saison) que la ligne de moyenne cliquée — voir renderAverageCard et
 // window.__presenceDetailFor (rempli par attachPresenceEvents).
 function computePresenceDetail(p, equipe, monthOnly) {
-  let evs = evenements.filter(ev => eventEquipe(ev) === equipe);
+  let evs = evenements.filter(ev => eventVisibleForTeam(ev, equipe));
   if (monthOnly) {
     const now = new Date();
     evs = evs.filter(ev => {
@@ -128,7 +128,7 @@ function renderPresencePage() {
   const defaultTeam = switcherTeams.includes(preferredTeam) ? preferredTeam : (switcherTeams[0] || "SF1");
   const activeTeam = (window.__presenceTeamView && switcherTeams.includes(window.__presenceTeamView)) ? window.__presenceTeamView : defaultTeam;
 
-  const sorted = sortedEvenements().filter(ev => eventEquipe(ev) === activeTeam);
+  const sorted = sortedEvenements().filter(ev => eventVisibleForTeam(ev, activeTeam));
   const now = new Date();
   const upcoming = sorted.filter(ev => eventDateObj(ev) >= now);
   const past = sorted.filter(ev => eventDateObj(ev) < now).reverse();
