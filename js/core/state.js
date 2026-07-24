@@ -8,7 +8,7 @@ const LOGO_DATA_URI = "images/logo.svg";
 const SESSION_KEY = "ashs-session"; // {nom, role, code, equipe}
 const APP_VERSION_KEY = "ashs-app-version";
 const LAST_USER_KEY = "ashs-last-user"; // simple mémorisation du dernier nom connecté sur cet appareil (pas le code)
-const APP_VERSION = "2026-07-24-9"; // À incrémenter à chaque mise à jour déployée
+const APP_VERSION = "2026-07-24-10"; // À incrémenter à chaque mise à jour déployée
 // À COMPLÉTER si la saison ASHS ne suit pas le calendrier standard septembre-juin.
 const SEASON_START = new Date(2026, 8, 1);  // 1er septembre 2026
 const SEASON_END = new Date(2027, 5, 30);   // 30 juin 2027
