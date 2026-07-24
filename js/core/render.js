@@ -348,11 +348,17 @@ const NAV_ICONS = {
 };
 
 function getTabsForRole() {
+  const isU17 = isInTeam("U17M1") || isInTeam("U17M2");
   const tabs = [
     { id: "home", label: "Accueil", main: true },
-    { id: "agenda", label: "Agenda", main: true },
-    { id: "actualites", label: "Actualités", main: true },
   ];
+  // L'agenda "classique" (géré à la main dans l'appli) ne concerne que les équipes U17 — la SF1
+  // a son calendrier officiel FFHB (widget Score'n'co, voir agenda.js), pas besoin d'un onglet
+  // dédié. L'Admin et le Salarié gardent l'accès (gestion des événements club entier).
+  if (hasRole("Admin") || hasRole("Salarié") || isU17) {
+    tabs.push({ id: "agenda", label: "Agenda", main: true });
+  }
+  tabs.push({ id: "actualites", label: "Actualités", main: true });
   // Caisse noire reste réservée à la SF1 pour le moment (l'Admin garde accès à tout, peu
   // importe son équipe). On l'affiche si l'un des rôles cumulés donne accès à la SF1.
   const isSF1 = isInTeam("SF1") || hasRole("Admin");
@@ -360,7 +366,6 @@ function getTabsForRole() {
     tabs.push({ id: "table", label: "Caisse noire", main: true });
   }
 
-  const isU17 = isInTeam("U17M1") || isInTeam("U17M2");
   const extraCandidates = [];
   if (hasRole("Coach") || hasRole("Admin")) extraCandidates.push({ id: "presence", label: "Présence", main: false });
   if (hasRole("Admin") || ((hasRole("Joueur") || hasRole("Coach")) && isInTeam("SF1"))) extraCandidates.push({ id: "paiements", label: "Paiements", main: false });
