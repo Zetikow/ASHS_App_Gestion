@@ -46,12 +46,15 @@ render();
 if (session) startPolling();
 else {
   fetchLoginNoms();
-  // Un utilisateur déjà mémorisé sur cet appareil a forcément déjà défini son code par le
+  // Un utilisateur déjà mémorisé sur cet appareil a normalement déjà défini son code par le
   // passé : pas besoin d'attendre un aller-retour serveur pour savoir s'il faut lui montrer
   // le champ code — on l'affiche tout de suite, ce qui accélère nettement l'écran de connexion.
+  // On vérifie quand même en arrière-plan (et on corrige si besoin) au cas où un Admin a
+  // réinitialisé ce compte (case Code vidée dans Google Sheet) depuis cet appareil.
   if (loginSelectedNom && loginPrefilledFromMemory) {
     loginNeedsSetup = false;
     render();
+    checkAccountStatus(loginSelectedNom);
   } else if (loginSelectedNom) {
     checkAccountStatus(loginSelectedNom);
   }
