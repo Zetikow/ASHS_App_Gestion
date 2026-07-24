@@ -65,10 +65,10 @@ function addU17ParentsAndPlayers() {
   Logger.log(ajoutes + " compte(s) ajouté(s), " + ignores + " ignoré(s) car déjà existant(s).");
 }
 
-// À exécuter UNE FOIS depuis l'éditeur pour créer le compte de Perrine S. (Coach U17M1 et
-// U17M2, Joueuse et Admin SF1). Vérifie qu'il n'existe pas déjà, pour ne jamais créer de doublon.
-// Le code reste vide : elle le choisit elle-même à sa première connexion (6 chiffres, car le
-// rôle Admin l'exige — voir requiredCodeLength dans Auth.gs).
+// À exécuter UNE FOIS depuis l'éditeur pour créer le compte de Perrine S. Pour l'instant en
+// simple joueuse SF1 (rôles Coach U17M1/U17M2 et Admin à réactiver plus tard une fois les tests
+// terminés — voir historique). Vérifie qu'il n'existe pas déjà, pour ne jamais créer de doublon.
+// Le code reste vide : elle le choisit elle-même à sa première connexion (4 chiffres, rôle non-Admin).
 function addPerrineAccount() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Comptes");
@@ -83,7 +83,39 @@ function addPerrineAccount() {
   }
   const row = new Array(8).fill("");
   row[COL_NOM] = nom;
-  row[COL_ROLES] = "Coach:U17M1,Coach:U17M2,Joueur:SF1,Admin:Toutes";
+  row[COL_ROLES] = "Joueur:SF1";
   sheet.appendRow(row);
-  Logger.log("Compte '" + nom + "' créé (Coach U17M1/U17M2, Joueuse et Admin SF1). Code à définir par elle-même à la première connexion (6 chiffres).");
+  Logger.log("Compte '" + nom + "' créé (Joueuse SF1). Code à définir par elle-même à la première connexion (4 chiffres).");
+}
+
+// À exécuter UNE FOIS depuis l'éditeur pour créer deux comptes génériques de test, un par équipe
+// U17 (Joueur:U17M1 / Joueur:U17M2), afin d'avoir de quoi naviguer dans l'appli en conditions
+// proches du réel avant que l'effectif définitif ne soit connu. Vérifie qu'ils n'existent pas déjà.
+function addGenericU17TestAccounts() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Comptes");
+  ensureComptesSchema(sheet);
+  const data = sheet.getDataRange().getValues();
+  const nomsExistants = new Set(data.slice(1).map(r => String(r[COL_NOM]).trim()));
+
+  const comptes = [
+    ["Joueur U17M1", "Joueur:U17M1"],
+    ["Joueur U17M2", "Joueur:U17M2"],
+  ];
+
+  let ajoutes = 0, ignores = 0;
+  comptes.forEach(([nom, roles]) => {
+    if (nomsExistants.has(nom.trim())) {
+      Logger.log("Ignoré (déjà existant) : " + nom);
+      ignores++;
+      return;
+    }
+    const row = new Array(8).fill("");
+    row[COL_NOM] = nom;
+    row[COL_ROLES] = roles;
+    sheet.appendRow(row);
+    ajoutes++;
+  });
+
+  Logger.log(ajoutes + " compte(s) générique(s) créé(s), " + ignores + " ignoré(s) car déjà existant(s). Code à définir à la première connexion (4 chiffres).");
 }

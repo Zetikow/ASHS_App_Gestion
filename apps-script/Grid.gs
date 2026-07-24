@@ -36,32 +36,41 @@ function setupGrid() {
   });
   sheet.getRange(firstDataRow, 1, rows.length, header.length - 1).setValues(rows);
 
-  let paramSheet = ss.getSheetByName("Paramètres");
-  if (!paramSheet) paramSheet = ss.insertSheet("Paramètres");
-  paramSheet.clear();
-  paramSheet.getRange("A1").setValue("liste du nombre d'action");
-  const numberValues = [];
-  for (let v = 0; v <= 50; v++) numberValues.push([v]);
-  paramSheet.getRange(2, 1, numberValues.length, 1).setValues(numberValues);
+  // Tout ce qui suit suppose au moins 1 joueur dans PLAYERS (js/config/club-config.js et
+  // apps-script/Config.gs) — tant que l'effectif n'est pas rempli, la feuille Grid garde juste
+  // son en-tête (Action/Valeur/Total Action) sans planter le reste de setup(). Remplis PLAYERS
+  // puis relance setupGrid() (ou setup()) pour générer les colonnes joueurs, la validation et
+  // les formules de total.
+  if (nbPlayers > 0) {
+    let paramSheet = ss.getSheetByName("Paramètres");
+    if (!paramSheet) paramSheet = ss.insertSheet("Paramètres");
+    paramSheet.clear();
+    paramSheet.getRange("A1").setValue("liste du nombre d'action");
+    const numberValues = [];
+    for (let v = 0; v <= 50; v++) numberValues.push([v]);
+    paramSheet.getRange(2, 1, numberValues.length, 1).setValues(numberValues);
 
-  const sourceRange = paramSheet.getRange(2, 1, numberValues.length, 1);
-  const validation = SpreadsheetApp.newDataValidation()
-    .requireValueInRange(sourceRange, true)
-    .setAllowInvalid(false)
-    .build();
-  sheet.getRange(firstDataRow, firstPlayerCol, ACTIONS.length, nbPlayers).setDataValidation(validation);
+    const sourceRange = paramSheet.getRange(2, 1, numberValues.length, 1);
+    const validation = SpreadsheetApp.newDataValidation()
+      .requireValueInRange(sourceRange, true)
+      .setAllowInvalid(false)
+      .build();
+    sheet.getRange(firstDataRow, firstPlayerCol, ACTIONS.length, nbPlayers).setDataValidation(validation);
 
-  for (let r = firstDataRow; r <= lastDataRow; r++) {
-    const playerRange = `${columnToLetter(firstPlayerCol)}${r}:${columnToLetter(lastPlayerCol)}${r}`;
-    sheet.getRange(r, totalCol).setFormula(`=SUM(${playerRange})*B${r}`);
+    for (let r = firstDataRow; r <= lastDataRow; r++) {
+      const playerRange = `${columnToLetter(firstPlayerCol)}${r}:${columnToLetter(lastPlayerCol)}${r}`;
+      sheet.getRange(r, totalCol).setFormula(`=SUM(${playerRange})*B${r}`);
+    }
+
+    sheet.getRange(totalRow, 1).setValue("TOTAL Joueur");
+    for (let c = firstPlayerCol; c <= lastPlayerCol; c++) {
+      const col = columnToLetter(c);
+      sheet.getRange(totalRow, c).setFormula(`=SUMPRODUCT(${col}${firstDataRow}:${col}${lastDataRow},$B${firstDataRow}:$B${lastDataRow})`);
+    }
+    sheet.getRange(totalRow, totalCol).setFormula(`=SUM(${columnToLetter(totalCol)}${firstDataRow}:${columnToLetter(totalCol)}${lastDataRow})`);
+  } else {
+    Logger.log("setupGrid : PLAYERS est vide, la feuille Grid est créée sans colonne joueur pour l'instant. Remplis PLAYERS (Config.gs + club-config.js) puis relance setupGrid() une fois l'effectif SF1 connu.");
   }
-
-  sheet.getRange(totalRow, 1).setValue("TOTAL Joueur");
-  for (let c = firstPlayerCol; c <= lastPlayerCol; c++) {
-    const col = columnToLetter(c);
-    sheet.getRange(totalRow, c).setFormula(`=SUMPRODUCT(${col}${firstDataRow}:${col}${lastDataRow},$B${firstDataRow}:$B${lastDataRow})`);
-  }
-  sheet.getRange(totalRow, totalCol).setFormula(`=SUM(${columnToLetter(totalCol)}${firstDataRow}:${columnToLetter(totalCol)}${lastDataRow})`);
 
   sheet.getRange(totalRow, 1, 1, header.length).setFontWeight("bold");
   sheet.getRange(1, 1, 1, header.length).setFontWeight("bold");

@@ -185,7 +185,7 @@ function api_accountStatus(ss, e) {
   const nom = e.parameter.nom;
   const comptes = ss.getSheetByName("Comptes").getDataRange().getValues();
   for (let i = 1; i < comptes.length; i++) {
-    if (comptes[i][COL_NOM] === nom) {
+    if (String(comptes[i][COL_NOM]).trim() === String(nom).trim()) {
       const codeVide = !comptes[i][COL_CODE] || String(comptes[i][COL_CODE]).trim() === "";
       const codeLength = requiredCodeLength(rolesCellHasAdmin(comptes[i][COL_ROLES]));
       return jsonOut({ ok: true, needsSetup: codeVide, codeLength });
@@ -221,7 +221,7 @@ function api_setCode(ss, e) {
   ensureComptesSchema(sheet);
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (data[i][COL_NOM] === nom) {
+    if (String(data[i][COL_NOM]).trim() === String(nom).trim()) {
       const expectedLength = requiredCodeLength(rolesCellHasAdmin(data[i][COL_ROLES]));
       if (!new RegExp(`^\\d{${expectedLength}}$`).test(newCode)) return jsonOut({ ok: false, error: "format", codeLength: expectedLength });
       const codeVide = !data[i][COL_CODE] || String(data[i][COL_CODE]).trim() === "";

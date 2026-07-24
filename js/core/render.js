@@ -22,7 +22,7 @@ async function checkAccountStatus(nom) {
     loginCodeLength = (data.ok && data.codeLength) ? data.codeLength : 4;
   } catch (err) {
     loginNeedsSetup = false;
-    loginCodeLength = 4;
+    loginCodeLength = 6;
   }
   render();
 }
