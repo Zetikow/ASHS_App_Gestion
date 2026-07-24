@@ -1,7 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 480 960" width="480" height="960">
+  <defs>
+    <filter id="neonBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.6"/>
+    </filter>
+  </defs>
+
   <rect width="480" height="960" fill="#000000"/>
 
-  <g fill="none" stroke="#ffffff" stroke-opacity="0.24" stroke-width="1.8" stroke-linecap="round">
+  <g fill="none" stroke-linecap="round" filter="url(#neonBlur)">
+    <line x1="70" y1="140" x2="180" y2="205" stroke="#9B2FE0" stroke-opacity="0.4" stroke-width="2.2"/>
+    <line x1="300" y1="460" x2="410" y2="525" stroke="#E8B84B" stroke-opacity="0.35" stroke-width="2.2"/>
+    <line x1="40" y1="500" x2="140" y2="560" stroke="#E8B84B" stroke-opacity="0.35" stroke-width="2.2"/>
+    <line x1="290" y1="770" x2="400" y2="835" stroke="#9B2FE0" stroke-opacity="0.4" stroke-width="2.2"/>
+  </g>
+
+  <g fill="none" stroke-linecap="round">
+    <line x1="70" y1="140" x2="180" y2="205" stroke="#c98cf0" stroke-opacity="0.7" stroke-width="1.4"/>
+    <line x1="300" y1="460" x2="410" y2="525" stroke="#f6d998" stroke-opacity="0.6" stroke-width="1.4"/>
+    <line x1="40" y1="500" x2="140" y2="560" stroke="#f6d998" stroke-opacity="0.6" stroke-width="1.4"/>
+    <line x1="290" y1="770" x2="400" y2="835" stroke="#c98cf0" stroke-opacity="0.7" stroke-width="1.4"/>
+  </g>
+
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="1.8" stroke-linecap="round">
     <line x1="20" y1="20" x2="120" y2="80"/>
     <line x1="340" y1="10" x2="450" y2="65"/>
     <line x1="60" y1="230" x2="160" y2="285"/>
@@ -24,4 +44,6 @@
     <text x="60" y="1050" transform="rotate(-12 60 1050)">ASHS</text>
     <text x="300" y="1010" transform="rotate(-12 300 1010)">ASHS</text>
   </g>
+
+  <image href="logo-watermark.png" xlink:href="logo-watermark.png" x="90" y="417.5" width="300" height="300" opacity="0.5"/>
 </svg>
