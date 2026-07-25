@@ -347,6 +347,30 @@ const NAV_ICONS = {
   covoiturage: '<path d="M5 11l1.5-4.5A2 2 0 018.4 5h7.2a2 2 0 011.9 1.5L19 11M3 11h18v6a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1H6v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/>',
 };
 
+// Position (en px) de la pastille de nav lors du dernier appel — permet de simuler un glissement
+// (FLIP) même si le <div id="nav-pill"> est en réalité recréé à chaque rendu (innerHTML complet) :
+// on le pose d'abord instantanément à son ancienne position, puis on anime vers la nouvelle.
+let __lastNavPillRect = null;
+
+function positionNavPill() {
+  const pill = document.getElementById("nav-pill");
+  const activeBtn = document.querySelector(".bottom-nav .nav-btn.active");
+  if (!pill || !activeBtn) return;
+  const navRect = pill.parentElement.getBoundingClientRect();
+  const btnRect = activeBtn.getBoundingClientRect();
+  const targetLeft = btnRect.left - navRect.left;
+  const targetWidth = btnRect.width;
+
+  pill.style.transition = "none";
+  pill.style.left = (__lastNavPillRect ? __lastNavPillRect.left : targetLeft) + "px";
+  pill.style.width = (__lastNavPillRect ? __lastNavPillRect.width : targetWidth) + "px";
+  void pill.offsetWidth;
+  pill.style.transition = "left 0.28s cubic-bezier(.4,1.3,.4,1), width 0.28s cubic-bezier(.4,1.3,.4,1)";
+  pill.style.left = targetLeft + "px";
+  pill.style.width = targetWidth + "px";
+  __lastNavPillRect = { left: targetLeft, width: targetWidth };
+}
+
 function getTabsForRole() {
   const isU17 = isInTeam("U17M1") || isInTeam("U17M2");
   const tabs = [
@@ -473,6 +497,12 @@ function render() {
     html += `<div class="status-bar status-offline">Hors ligne - nouvelle tentative...</div>`;
   }
 
+  // Exposé avant le rendu de la page : permet aux renderXxxPage() de ne jouer une animation
+  // d'entrée (cascade de cartes, barres qui se remplissent...) que lors d'un vrai changement de
+  // page, jamais lors d'un rafraîchissement périodique (fetchAll toutes les 8-10s) qui rejoue
+  // sinon l'animation en boucle sur des données identiques.
+  window.__pageJustChanged = session && (__lastRenderedPage === null || __lastRenderedPage !== currentPage);
+
   const tabs = getTabsForRole();
   const mainTabs = tabs.filter(t => t.main);
   const extraTabs = tabs.filter(t => !t.main);
@@ -492,13 +522,14 @@ function render() {
   else if (currentPage === "guide") html += renderGuidePage();
   else if (currentPage === "support") html += renderSupportPage();
 
-  html += `<div class="bottom-nav">`;
-  html += mainTabs.map(t =>
-    `<button data-page="${t.id}" class="nav-btn ${currentPage === t.id ? 'active' : ''}">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${NAV_ICONS[t.id] || ""}</svg>
+  html += `<div class="bottom-nav"><div class="nav-pill" id="nav-pill"></div>`;
+  html += mainTabs.map(t => {
+    const justActivated = window.__pageJustChanged && currentPage === t.id;
+    return `<button data-page="${t.id}" class="nav-btn ${currentPage === t.id ? 'active' : ''}">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="${justActivated ? 'animation:navIconBounce 0.35s ease-out;' : ''}">${NAV_ICONS[t.id] || ""}</svg>
       ${t.label}
-    </button>`
-  ).join("");
+    </button>`;
+  }).join("");
   if (extraTabs.length > 0) {
     const extraIcon = currentIsExtra ? (NAV_ICONS[currentPage] || NAV_ICONS.more) : NAV_ICONS.more;
     html += `<div class="bn-select-wrap ${currentIsExtra ? 'active' : ''}">
@@ -515,6 +546,7 @@ function render() {
 
   app.innerHTML = html;
   attachEvents();
+  if (session) positionNavPill();
 
   // Restaure la position de défilement après reconstruction — sauf si on vient de changer
   // de page, auquel cas on repart en haut plutôt que de garder le niveau de défilement précédent.
