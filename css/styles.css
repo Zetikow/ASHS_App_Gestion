@@ -365,7 +365,8 @@ body.login-mode .login-wrap { flex: 1; min-height: 0; }
 .justif-note { margin-top: 6px; font-size: 11px; color: #ff9c8a; background: rgba(255,90,90,0.08); border: 1px solid rgba(255,90,90,0.25); border-radius: 9px; padding: 7px 10px; }
 .justif-note b { color: #ff5a5a; font-weight: 800; }
 .ev-actions { display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
-.ev-kebab-wrap { position: relative; flex-shrink: 0; }
+.ev-has-kebab { padding-right: 34px; }
+.ev-kebab-wrap { position: absolute; top: 10px; right: 10px; z-index: 2; }
 .ev-kebab { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; color: #8a8f9e; font-size: 16px; font-weight: 900; cursor: pointer; line-height: 1; }
 .ev-kebab:active, .ev-kebab.tap-active { background: #1a1f30; transform: scale(0.92); }
 .ev-menu.avatar-menu { top: 30px; right: 0; min-width: 150px; padding: 6px; }
