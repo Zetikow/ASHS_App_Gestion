@@ -1,7 +1,7 @@
 // IMPORTANT : incrémente ce numéro à chaque mise à jour déployée de l'appli.
 // Ça force le renouvellement du cache ET (via APP_VERSION dans index.html)
 // la déconnexion de tous les utilisateurs pour qu'ils rechargent la dernière version.
-const CACHE_NAME = "ashs-v2026-07-24-24";
+const CACHE_NAME = "ashs-v2026-07-24-25";
 const ASSETS = [
   "./manifest.json",
   "./images/logo.svg",

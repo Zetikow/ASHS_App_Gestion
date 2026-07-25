@@ -39,12 +39,29 @@ function carteHeadHtml(id, icon, titre, canManage) {
 }
 
 async function addCarteApi(eventId, type, titre, options, total) {
+  // Optimiste : ferme le formulaire et affiche la carte tout de suite (id provisoire), sans
+  // attendre l'aller-retour serveur — fetchAll() la remplace ensuite par la version serveur.
+  const tempId = "temp_" + Date.now();
+  cartes.push([tempId, eventId, type, titre, JSON.stringify(options), total || ""]);
+  window.__addCarteEventId = null;
+  render();
   try {
     const params = new URLSearchParams({ action: "addCarte", eventId, type, titre, options: options.join("|"), total: total || "", authNom: session.nom, authCode: session.code });
-    await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
-    window.__addCarteEventId = null;
-    await fetchAll();
-  } catch (err) { isOnline = false; render(); }
+    const res = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
+    const data = await res.json();
+    if (data.ok) {
+      await fetchAll();
+    } else {
+      cartes = cartes.filter(c => c[0] !== tempId);
+      showToast("Échec de la création de la carte", "error");
+      render();
+    }
+  } catch (err) {
+    isOnline = false;
+    cartes = cartes.filter(c => c[0] !== tempId);
+    showToast("Échec de la création de la carte", "error");
+    render();
+  }
 }
 
 async function deleteCarteApi(carteId) {
