@@ -142,7 +142,9 @@ function renderMatchCard(ev, isPast) {
   const awayIsUs = m.away === CLUB_TEAM_NAME;
   const photoBtn = `<button class="mc2-photo-btn" data-open-match-photos="${escapeHtml(date)}|||${escapeHtml(titre)}|||${escapeHtml(equipeRaw || "SF1")}" title="Voir les photos">📷</button>`;
 
-  const badge = (name, isUs) => `<div class="mc2-badge ${isUs ? "us" : ""}">${escapeHtml(teamAvatarLabel(name))}</div>`;
+  const badge = (name, isUs) => isUs
+    ? `<div class="mc2-badge mc2-badge-logo"><img src="images/logo.svg" alt="${escapeHtml(CLUB_TEAM_NAME)}" /></div>`
+    : `<div class="mc2-badge">${escapeHtml(teamAvatarLabel(name))}</div>`;
 
   if (isPast && score) {
     const parts = String(score).split("-").map(n => parseInt(n, 10));
@@ -256,6 +258,7 @@ function exportCalendarICS() {
 // Équipes (SF1/U17/SM2) où ce compte est Joueur ou Coach — la session cumule déjà tous les
 // rôles liés automatiquement, plus besoin de recalculer via les comptes/"Personne".
 function myScorencoTeams() {
+  if (hasRole("Admin")) return [...TEAMS];
   const teams = new Set();
   (session.roles || []).forEach(r => {
     if ((r.role === "Joueur" || r.role === "Coach") && TEAMS.includes(r.equipe)) teams.add(r.equipe);
@@ -264,7 +267,6 @@ function myScorencoTeams() {
       if (childRow) rowEquipesForRole(childRow, "Joueur").forEach(t => teams.add(t));
     }
   });
-  teams.add("SF1"); // équipe première du club : visible pour tout le monde, quelle que soit l'équipe
   return [...teams];
 }
 
