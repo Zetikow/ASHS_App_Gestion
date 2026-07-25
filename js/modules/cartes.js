@@ -171,12 +171,22 @@ function renderRepasCard(carte, identities, canManage) {
   return html;
 }
 
+// Un même identité peut cocher plusieurs choix (ex: Coca ET chips) — une réponse par item,
+// champ = "item:<nom de l'option>", valeur = "Oui"/"" (voir aperoItemChamp).
+function aperoItemChamp(option) {
+  return "item:" + option;
+}
+function aperoSignupsFor(carteId) {
+  return cartesReponses.filter(r => r[0] === carteId && r[2].indexOf("item:") === 0 && r[3] === "Oui")
+    .map(r => ({ nom: r[1], item: r[2].slice(5) }));
+}
+
 function renderAperoCard(carte, identities, canManage) {
   const [id, , , titre] = carte;
   const options = carteOptions(carte);
-  const signups = carteReponsesFor(id, "choix");
+  const signups = aperoSignupsFor(id);
 
-  const summary = signups.length > 0 ? `${signups.length} inscrit${signups.length > 1 ? "s" : ""}` : "Aucune inscription pour l'instant";
+  const summary = signups.length > 0 ? `${signups.length} inscription${signups.length > 1 ? "s" : ""}` : "Aucune inscription pour l'instant";
   const expanded = !!(window.__carteExpanded && window.__carteExpanded[id]);
   if (!expanded) return renderCarteCollapsed(id, "🥂", titre || "Qui amène quoi", summary);
 
@@ -187,23 +197,25 @@ function renderAperoCard(carte, identities, canManage) {
   if (signups.length === 0) {
     html += `<div class="cp-empty">Personne pour l'instant</div>`;
   } else {
-    signups.forEach(r => { html += `<div class="cp-row"><span>${escapeHtml(r[1])}</span><span class="places">${escapeHtml(r[3])}</span></div>`; });
+    signups.forEach(s => { html += `<div class="cp-row"><span>${escapeHtml(s.nom)}</span><span class="places">${escapeHtml(s.item)}</span></div>`; });
   }
 
   identities.forEach(idt => {
-    const mine = carteReponseFor(id, idt.nom, "choix");
     html += `<div class="carte-identity">
       <div class="cp-edit-label">${idt.isChild ? `Pour ${escapeHtml(idt.nom)} <span class="cp-for-child">ton enfant</span>` : "Toi"}</div>
-      <select data-carte-choix="${escapeHtml(id)}|||${escapeHtml(idt.nom)}">
-        <option value="">— Choisir dans la liste —</option>
-        ${options.map(o => `<option value="${escapeHtml(o)}" ${mine && mine[3] === o ? "selected" : ""}>${escapeHtml(o)}</option>`).join("")}
-      </select>
+      ${options.map(o => {
+        const checked = !!carteReponseFor(id, idt.nom, aperoItemChamp(o));
+        return `<label style="display:flex; align-items:center; gap:8px; padding:6px 0; font-size:12.5px; color:#e8e8ee;">
+          <input type="checkbox" data-carte-item="${escapeHtml(id)}|||${escapeHtml(idt.nom)}|||${escapeHtml(o)}" ${checked ? "checked" : ""} style="width:17px; height:17px; flex-shrink:0;" />
+          ${escapeHtml(o)}
+        </label>`;
+      }).join("")}
       <div class="carte-propose" style="margin-top:6px;"><input type="text" placeholder="Ajouter un nouveau choix..." id="carte-propose-${id}-${idt.nom}" /><button type="button" class="btn secondary" style="width:auto; padding:8px 12px;" data-carte-propose-choix="${escapeHtml(id)}|||${escapeHtml(idt.nom)}">Ajouter</button></div>
       ${canManage && options.length > 0 ? `<div class="muted" style="font-size:9.5px; margin-top:6px;">Retirer un choix : ${options.map(o => `<span class="cp-for-child" style="cursor:pointer;" data-carte-remove-option="${escapeHtml(id)}|||${escapeHtml(o)}">${escapeHtml(o)} ✕</span>`).join(" ")}</div>` : ""}
     </div>`;
   });
 
-  html += `<div class="muted" style="font-size:9.5px; margin-top:8px; text-align:center;">Un nouveau choix reste dans la liste pour les prochaines fois.</div></div>`;
+  html += `<div class="muted" style="font-size:9.5px; margin-top:8px; text-align:center;">Coche tout ce que tu apportes — un nouveau choix reste dans la liste pour les prochaines fois.</div></div>`;
   return html;
 }
 
@@ -302,7 +314,7 @@ function attachCartesEvents() {
       const input = document.getElementById(`carte-propose-${carteId}-${nom}`);
       const val = input ? input.value.trim() : "";
       if (val) {
-        addCarteOptionApi(carteId, val).then(() => setCarteReponseApi(carteId, nom, "choix", val));
+        addCarteOptionApi(carteId, val).then(() => setCarteReponseApi(carteId, nom, aperoItemChamp(val), "Oui"));
       }
     };
   });
@@ -337,10 +349,11 @@ function attachCartesEvents() {
     };
   });
 
-  document.querySelectorAll("[data-carte-choix]").forEach(el => {
+  document.querySelectorAll("[data-carte-item]").forEach(el => {
     el.onchange = () => {
-      const [carteId, nom] = el.dataset.carteChoix.split("|||");
-      setCarteReponseApi(carteId, nom, "choix", el.value);
+      vibrate();
+      const [carteId, nom, option] = el.dataset.carteItem.split("|||");
+      setCarteReponseApi(carteId, nom, aperoItemChamp(option), el.checked ? "Oui" : "");
     };
   });
 }
