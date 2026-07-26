@@ -143,7 +143,7 @@ function renderMatchCard(ev, isPast) {
   const photoBtn = `<button class="mc2-photo-btn" data-open-match-photos="${escapeHtml(date)}|||${escapeHtml(titre)}|||${escapeHtml(equipeRaw || "SF1")}" title="Voir les photos">📷</button>`;
 
   const badge = (name, isUs) => isUs
-    ? `<div class="mc2-badge mc2-badge-logo"><img src="images/logo.svg" alt="${escapeHtml(CLUB_TEAM_NAME)}" /></div>`
+    ? `<div class="mc2-badge mc2-badge-logo"><img src="images/logo-watermark.png" alt="${escapeHtml(CLUB_TEAM_NAME)}" /></div>`
     : `<div class="mc2-badge">${escapeHtml(teamAvatarLabel(name))}</div>`;
 
   if (isPast && score) {
