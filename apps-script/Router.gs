@@ -50,6 +50,9 @@ const API_HANDLERS = {
   setCompositionSlot: api_setCompositionSlot,               // Compositions.gs
   setCompositionFreePos: api_setCompositionFreePos,         // Compositions.gs
   publishComposition: api_publishComposition,               // Compositions.gs
+  addFoodtruck: api_addFoodtruck,                           // Foodtrucks.gs
+  updateFoodtruck: api_updateFoodtruck,                     // Foodtrucks.gs
+  deleteFoodtruck: api_deleteFoodtruck,                     // Foodtrucks.gs
 };
 
 // Toute action passe par ce try/catch : sans lui, une erreur non prévue dans un handler (ex:

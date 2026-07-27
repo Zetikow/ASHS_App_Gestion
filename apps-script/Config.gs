@@ -8,31 +8,34 @@
 // valeurs À COMPLÉTER équivalentes côté frontend.
 // ===================================================================
 
-// Repris du barème HBC Bischoffsheim comme point de départ — à ajuster au club.
+// Barème caisse noire SF1. Les sanctions génériques ont une variante "(match)" à double tarif
+// (règle "jour de match" du club) ; celles déjà propres au contexte match (cartons, POC...) n'ont
+// pas de doublon puisqu'elles ne surviennent pas à l'entraînement.
+// Règles non chiffrées ici (gérées à part, pas dans ce barème) : sanction collective de +1€ par
+// but au-delà de 30 encaissés lors d'un match, et récompense "-25 buts encaissés = apéro coachs".
 const ACTIONS = [
-  ["participation mensuelle", 5],
-  ["Retard entraînement", 1],
-  ["Retard match", 1],
-  ["Absence non justifié à l'entrainement", 10],
-  ["Oubli de vêtement entraînement", 3],
-  ["Oubli de vêtement match", 6],
-  ["Absence non justifié au match", 50],
-  ["Oubli de chasuble", 2],
-  ["Taxer une serviette de douche", 2],
-  ["Taxer du savon", 1],
-  ["Taxer de la crème", 0.5],
-  ["Carton Rouge direct", 7],
-  ["2min pour avoir râler", 4],
-  ["Carton bleu", 15],
-  ["Pas de logo ASHS pour le déplacement", 5],
-  ["Ballon dégueulasse (vraiment !)", 2],
-  ["Oubli du ballon (match / entrainement)", 2],
-  ["Taxer de l'eau", 1],
-  ["Pas présent repas après match domicile", 5],
-  ["Nom dans le journal", 2],
-  ["Photo dans le journal", 4],
-  ["Pire action du match (+ déguisement)", 1],
-  ["Meilleure action du match", 2],
+  ["Retard (prévenir 30min avant)", 2],
+  ["Retard (match)", 4],
+  ["Remplir Sport Easy (24h avant)", 3],
+  ["Remplir Sport Easy (match)", 6],
+  ["Absence injustifiée", 5],
+  ["Absence injustifiée (match)", 10],
+  ["Oublis", 2],
+  ["Oublis (match)", 4],
+  ["POC (match)", 2],
+  ["Tête du gardien (match et entraînement)", 3],
+  ["Bêtises", 2],
+  ["Bêtises (match)", 4],
+  ["Embrouille entre coéquipiers (match)", 4],
+  ["Carton rouge", 5],
+  ["Carton bleu", 10],
+  ["Sanctions match (râler...)", 3],
+  ["Questions bêtes", 1],
+  ["Questions bêtes (match)", 2],
+  ["Râler à cause des sanctions", 2],
+  ["Râler à cause des sanctions (match)", 4],
+  ["Téléphone pendant entraînement", 3],
+  ["Participation mensuelle", 4],
   ["Autre (à préciser)", 1],
 ];
 

@@ -134,7 +134,7 @@ function renderCaisseNoireSummary() {
   }
 
   const isAdmin = hasRole("Admin");
-  const FROZEN_ACTIONS = ["participation mensuelle"];
+  const FROZEN_ACTIONS = ["Participation mensuelle"];
 
   const renderPlayerCard = (p) => {
     const total = playerTotal(p);
@@ -150,7 +150,7 @@ function renderCaisseNoireSummary() {
     const editableItems = items.filter(it => !it.frozen);
 
     let bubbles = visibleItems.map(it => {
-      const isRetard = it.label === "Retard entraînement" || it.label === "Retard match";
+      const isRetard = it.label === "Retard (prévenir 30min avant)" || it.label === "Retard (match)";
       return isRetard
         ? `<span class="cn-bubble">${it.label} <span class="cn-bubble-val">${fmt(it.value)}€</span></span>`
         : `<span class="cn-bubble">${it.label} ×${it.count} <span class="cn-bubble-val">${fmt(it.value)}€</span></span>`;
