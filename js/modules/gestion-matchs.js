@@ -269,39 +269,41 @@ function renderMaillotsSection(activeTeam) {
   return html;
 }
 
-// Historique + à venir, matchs à domicile de l'équipe (les plus récents en premier) — sert au
-// suivi financier des foodtrucks, contrairement aux autres sections qui ne regardent que l'avenir.
-function foodtruckHomeMatches(activeTeam) {
-  return evenements.filter(ev => typeClass(ev[3]) === "match" && eventEquipe(ev) === activeTeam && isHomeMatch(ev[5]))
+// Historique + à venir, tous les matchs à domicile du club (les plus récents en premier) — pas
+// scoping par équipe, contrairement aux autres sections : un foodtruck ne concerne aucune
+// équipe en particulier, il vient pour une date/un match donné quelle que soit l'équipe qui joue.
+function foodtruckHomeMatches() {
+  const teams = myCarpoolTeams().filter(t => t !== "SF1");
+  return evenements.filter(ev => typeClass(ev[3]) === "match" && teams.includes(eventEquipe(ev)) && isHomeMatch(ev[5]))
     .sort((a, b) => eventDateObj(b) - eventDateObj(a));
 }
 
-function foodtruckEntriesFor(activeTeam) {
-  const ids = new Set(foodtruckHomeMatches(activeTeam).map(ev => ev[0]));
+function foodtruckEntriesFor() {
+  const ids = new Set(foodtruckHomeMatches().map(ev => ev[0]));
   return foodtrucks.filter(r => ids.has(r[1]));
 }
 
-function renderFoodtruckSection(activeTeam) {
-  const matches = foodtruckHomeMatches(activeTeam);
-  const entries = foodtruckEntriesFor(activeTeam);
+function renderFoodtruckSection() {
+  const matches = foodtruckHomeMatches();
+  const entries = foodtruckEntriesFor();
   const total = entries.reduce((s, r) => s + (parseFloat(r[4]) || 0), 0);
 
   let html = `<div class="pay-summary">
-    <div class="pay-summary-label">Bénéfice total foodtrucks — ${escapeHtml(activeTeam)}</div>
+    <div class="pay-summary-label">Bénéfice total foodtrucks</div>
     <div class="pay-summary-val">${fmt(total)} €</div>
   </div>`;
 
   html += `<button class="btn add-btn-primary" id="toggle-add-foodtruck">${window.__showAddFoodtruck ? "− Fermer" : "+ Ajouter un passage foodtruck"}</button>`;
   if (window.__showAddFoodtruck) {
     if (matches.length === 0) {
-      html += `<div class="card muted">Aucun match à domicile enregistré pour cette équipe pour l'instant.</div>`;
+      html += `<div class="card muted">Aucun match à domicile enregistré pour l'instant.</div>`;
     } else {
       html += `<div class="add-form">
         <label class="field-label">Nom du foodtruck</label>
         <input id="foodtruck-nom" type="text" placeholder="Ex: Chez Mario — Pizza" />
         <label class="field-label">Match associé</label>
         <select id="foodtruck-event">
-          ${matches.map(ev => `<option value="${escapeHtml(ev[0])}">${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match")}</option>`).join("")}
+          ${matches.map(ev => `<option value="${escapeHtml(ev[0])}">${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(eventEquipe(ev))} — ${escapeHtml(formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match")}</option>`).join("")}
         </select>
         <label class="field-label">Prix / menu</label>
         <input id="foodtruck-prix" type="text" placeholder="Ex: 8€ la part" />
@@ -322,14 +324,14 @@ function renderFoodtruckSection(activeTeam) {
     entries.slice().reverse().forEach(r => {
       const [id, eventId, nom, prix, benefice, notes] = r;
       const ev = evenements.find(e => e[0] === eventId);
-      const evLabel = ev ? `${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} · ${formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match"}` : "Match supprimé";
+      const evLabel = ev ? `${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} · ${eventEquipe(ev)} · ${formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match"}` : "Match supprimé";
       if (window.__editingFoodtruckId === id) {
         html += `<div class="paiement-row" style="display:block; padding:10px 0;">
           <label class="field-label">Nom du foodtruck</label>
           <input id="edit-foodtruck-nom-${id}" type="text" value="${escapeHtml(nom || "")}" style="margin-bottom:6px;" />
           <label class="field-label">Match associé</label>
           <select id="edit-foodtruck-event-${id}" style="margin-bottom:6px;">
-            ${matches.map(m => `<option value="${escapeHtml(m[0])}" ${m[0] === eventId ? "selected" : ""}>${eventDateObj(m).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(formatMatchDisplay(m[4], m[5]).label || m[4] || "Match")}</option>`).join("")}
+            ${matches.map(m => `<option value="${escapeHtml(m[0])}" ${m[0] === eventId ? "selected" : ""}>${eventDateObj(m).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(eventEquipe(m))} — ${escapeHtml(formatMatchDisplay(m[4], m[5]).label || m[4] || "Match")}</option>`).join("")}
           </select>
           <label class="field-label">Prix / menu</label>
           <input id="edit-foodtruck-prix-${id}" type="text" value="${escapeHtml(prix || "")}" style="margin-bottom:6px;" />
@@ -373,16 +375,17 @@ function renderGestionMatchsPage() {
   const activeTeam = (window.__covoitTeamView && teams.includes(window.__covoitTeamView)) ? window.__covoitTeamView : teams[0];
   const sections = gestionMatchsSectionsForRole();
   const section = sections.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : "covoiturage";
+  const needsTeam = section !== "foodtruck"; // les foodtrucks ne concernent aucune équipe en particulier
 
-  let html = `<div class="page-title">Gestion des matchs</div><div class="page-sub">Covoiturage, goûter, table de marque et maillots — équipe ${escapeHtml(activeTeam)}</div>`;
-  html += renderTeamSwitcher(teams, activeTeam, "covoit-team");
+  let html = `<div class="page-title">Gestion des matchs</div><div class="page-sub">Covoiturage, goûter, table de marque et maillots${needsTeam ? " — équipe " + escapeHtml(activeTeam) : ""}</div>`;
   html += `<div class="team-switch-row">${sections.map(s => `<button type="button" class="team-switch-btn ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}</div>`;
+  if (needsTeam) html += renderTeamSwitcher(teams, activeTeam, "covoit-team");
 
   if (section === "covoiturage") html += renderCovoiturageSection(activeTeam);
   else if (section === "gouter") html += renderGouterSection(activeTeam);
   else if (section === "tablemarque") html += renderTableMarqueSection(activeTeam);
   else if (section === "maillots") html += renderMaillotsSection(activeTeam);
-  else if (section === "foodtruck" && canManageFoodtrucks()) html += renderFoodtruckSection(activeTeam);
+  else if (section === "foodtruck" && canManageFoodtrucks()) html += renderFoodtruckSection();
 
   return html;
 }
