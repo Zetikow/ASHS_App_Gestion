@@ -24,6 +24,35 @@ function gestionMatchsSectionsForRole() {
   return GESTION_MATCHS_SECTIONS.filter(s => s.id !== "foodtruck" || canManageFoodtrucks());
 }
 
+// Nombre de sections affichées directement (les plus utilisées) avant de basculer les
+// suivantes dans le menu "⋮" — sur mobile, plus que ça fait déborder/couper les mots.
+const GESTION_MATCHS_VISIBLE_COUNT = 3;
+const GESTION_MATCHS_USAGE_KEY = "ashs-gestion-matchs-usage";
+
+// Fréquence d'usage par section, propre à cet appareil (localStorage) — pas de notion de
+// compte serveur ici, juste une préférence locale qui fait remonter ce que CE téléphone
+// utilise le plus, pour réduire le nombre de sections visibles d'un coup sur mobile.
+function gestionMatchsUsageCounts() {
+  try { return JSON.parse(localStorage.getItem(GESTION_MATCHS_USAGE_KEY) || "{}"); }
+  catch (err) { return {}; }
+}
+
+function bumpGestionMatchsUsage(id) {
+  const counts = gestionMatchsUsageCounts();
+  counts[id] = (counts[id] || 0) + 1;
+  try { localStorage.setItem(GESTION_MATCHS_USAGE_KEY, JSON.stringify(counts)); } catch (err) {}
+}
+
+// Sections triées par usage décroissant (les plus cliquées en premier) — tri stable, donc à
+// usage égal (ex: 0 clic, première visite) on garde l'ordre par défaut de GESTION_MATCHS_SECTIONS.
+function gestionMatchsSectionsSorted() {
+  const counts = gestionMatchsUsageCounts();
+  return gestionMatchsSectionsForRole()
+    .map((s, i) => ({ s, i, n: counts[s.id] || 0 }))
+    .sort((a, b) => b.n - a.n || a.i - b.i)
+    .map(x => x.s);
+}
+
 function covoitEntryFor(eventId, nom) {
   return covoiturage.find(r => r[0] === eventId && r[1] === nom) || null;
 }
@@ -373,12 +402,24 @@ function renderGestionMatchsPage() {
     return `<div class="page-title">Gestion des matchs</div><div class="card"><div class="muted">Aucune équipe concernée pour ce compte.</div></div>`;
   }
   const activeTeam = (window.__covoitTeamView && teams.includes(window.__covoitTeamView)) ? window.__covoitTeamView : teams[0];
-  const sections = gestionMatchsSectionsForRole();
-  const section = sections.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : "covoiturage";
+  const sortedSections = gestionMatchsSectionsSorted();
+  const section = sortedSections.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : "covoiturage";
   const needsTeam = section !== "foodtruck"; // les foodtrucks ne concernent aucune équipe en particulier
 
+  const visibleSections = sortedSections.slice(0, GESTION_MATCHS_VISIBLE_COUNT);
+  const overflowSections = sortedSections.slice(GESTION_MATCHS_VISIBLE_COUNT);
+  const activeInOverflow = overflowSections.some(s => s.id === section);
+
   let html = `<div class="page-title">Gestion des matchs</div><div class="page-sub">Covoiturage, goûter, table de marque et maillots${needsTeam ? " — équipe " + escapeHtml(activeTeam) : ""}</div>`;
-  html += `<div class="team-switch-row">${sections.map(s => `<button type="button" class="team-switch-btn ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}</div>`;
+  html += `<div class="team-switch-row">
+    ${visibleSections.map(s => `<button type="button" class="team-switch-btn ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}
+    ${overflowSections.length > 0 ? `<div class="gm-extra-wrap">
+      <button type="button" class="team-switch-btn gm-extra-trigger ${activeInOverflow ? 'active' : ''}" id="gm-extra-trigger">⋮</button>
+      ${window.__gestionMatchsExtraOpen ? `<div class="avatar-menu gm-extra-menu">
+        ${overflowSections.map(s => `<div class="avatar-menu-item ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</div>`).join("")}
+      </div>` : ""}
+    </div>` : ""}
+  </div>`;
   if (needsTeam) html += renderTeamSwitcher(teams, activeTeam, "covoit-team");
 
   if (section === "covoiturage") html += renderCovoiturageSection(activeTeam);
@@ -458,8 +499,23 @@ function renderCovoiturageHistoryCard(nom) {
 
 function attachGestionMatchsEvents() {
   document.querySelectorAll("[data-gestion-matchs-section]").forEach(el => {
-    el.onclick = () => { vibrate(); window.__gestionMatchsSection = el.dataset.gestionMatchsSection; render(); };
+    el.onclick = () => {
+      vibrate();
+      const id = el.dataset.gestionMatchsSection;
+      window.__gestionMatchsSection = id;
+      bumpGestionMatchsUsage(id);
+      window.__gestionMatchsExtraOpen = false;
+      render();
+    };
   });
+
+  const gmExtraTrigger = document.getElementById("gm-extra-trigger");
+  if (gmExtraTrigger) gmExtraTrigger.onclick = (e) => {
+    e.stopPropagation();
+    vibrate();
+    window.__gestionMatchsExtraOpen = !window.__gestionMatchsExtraOpen;
+    render();
+  };
 
   document.querySelectorAll("[data-covoit-team]").forEach(el => {
     el.onclick = () => { vibrate(); window.__covoitTeamView = el.dataset.covoitTeam; render(); };
