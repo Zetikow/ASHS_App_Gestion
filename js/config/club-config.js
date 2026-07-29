@@ -42,12 +42,12 @@ const ACTIONS = [
   ["Autre (à préciser)", 1],
 ];
 
-// À COMPLÉTER : effectif réel SF1 (la caisse noire ne concerne que cette équipe pour l'instant,
-// voir isInTeam("SF1") dans les pages Caisse noire / Repas après match / Paiement). Doit rester
-// identique à PLAYERS dans apps-script/Config.gs. Laisser vide tant que l'effectif n'est pas
-// connu : les comptes se créeront normalement, juste sans colonne dédiée dans la feuille Grid
-// tant que setupGrid() n'a pas été relancé avec la vraie liste.
-const PLAYERS = [];
+// Effectif réel SF1 (la caisse noire ne concerne que cette équipe pour l'instant, voir
+// isInTeam("SF1") dans les pages Caisse noire / Repas après match / Paiement). Doit rester
+// identique à PLAYERS dans apps-script/Config.gs. ATTENTION : relancer setupGrid() (ou setup())
+// après avoir rempli cette liste efface le contenu actuel de la feuille Grid (sheet.clear())
+// avant de la reconstruire avec ces colonnes — à ne faire qu'une fois, en connaissance de cause.
+const PLAYERS = ["Alicia G.","Amélie T.","Caroline S.","Charline G.","Clara O.","Délia DS.","Enora KM.","Fantine C.","Flavie M.","Géraldine W.","Hatice K.","Hélène S.","Helin A.","Iris A.","Julianne B.","Juliette B.","Juliette L.","Laura T.","Léa S.","Lisa L.","Lisa S.","Lou-Anne C.","Lucie F.","Margaux C.","Margaux J.","Marie O.","Marion S.","Mathilde K.","Mathilde M.","Myngoc T.","Nil S.","Patricia G.","Peggy J.","Perrine S.","Philomène C.","Sarah DC.","Valentine W."];
 
 // À COMPLÉTER : ton identifiant PayPal.me pour la caisse noire SF1 (ex: "ASHSCaisseNoire").
 // Laisse vide "" tant que ce n'est pas créé : le bouton Payer reste alors simplement masqué.

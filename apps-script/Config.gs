@@ -41,8 +41,8 @@ const ACTIONS = [
 
 // ATTENTION : ce barème est aussi dupliqué côté frontend (js/config/club-config.js) pour
 // l'affichage. Les deux doivent rester synchronisés manuellement.
-// À COMPLÉTER : effectif réel SF1 une fois connu (voir js/config/club-config.js).
-const PLAYERS = [];
+// Effectif réel SF1 (doit rester identique à PLAYERS dans js/config/club-config.js).
+const PLAYERS = ["Alicia G.","Amélie T.","Caroline S.","Charline G.","Clara O.","Délia DS.","Enora KM.","Fantine C.","Flavie M.","Géraldine W.","Hatice K.","Hélène S.","Helin A.","Iris A.","Julianne B.","Juliette B.","Juliette L.","Laura T.","Léa S.","Lisa L.","Lisa S.","Lou-Anne C.","Lucie F.","Margaux C.","Margaux J.","Marie O.","Marion S.","Mathilde K.","Mathilde M.","Myngoc T.","Nil S.","Patricia G.","Peggy J.","Perrine S.","Philomène C.","Sarah DC.","Valentine W."];
 
 // Colonnes de la feuille "Comptes" (une ligne par personne) :
 // Nom, Code, Roles, Poste, NomComplet, PhotoURL, Email, PushSubIds
