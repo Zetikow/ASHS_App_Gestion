@@ -25,6 +25,7 @@ function setup() {
   setupMaillots();
   setupCartes();
   setupFoodtrucks();
+  setupFoodtrucksCatalog();
   setupSupport();
   setupCompositions();
   ensureGridAction("Non renseigné avant dimanche soir", 1); // lié à Notifications.gs (checkDisponibilitesDimanche)

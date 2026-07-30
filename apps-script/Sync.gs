@@ -41,6 +41,8 @@ function api_getAll(ss, e) {
   const compositionsMeta = compositionsMetaSheet ? compositionsMetaSheet.getDataRange().getValues() : [];
   const foodtrucksSheet = ss.getSheetByName("Foodtrucks");
   const foodtrucks = (foodtrucksSheet && canManageFoodtrucks(callerRole)) ? foodtrucksSheet.getDataRange().getValues() : [];
+  const foodtrucksCatalogSheet = ss.getSheetByName("FoodtrucksCatalog");
+  const foodtrucksCatalog = (foodtrucksCatalogSheet && canManageFoodtrucks(callerRole)) ? foodtrucksCatalogSheet.getDataRange().getValues() : [];
 
-  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks });
+  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog });
 }

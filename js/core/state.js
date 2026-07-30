@@ -28,6 +28,7 @@ let maillots = []; // [[eventId, nom, pris], ...] (+ header row) — nombre de f
 let cartes = []; // [[id, eventId, type, titre, optionsJSON, total], ...] (+ header row) — cartes "repas"/"apero" sur un événement SF1
 let cartesReponses = []; // [[carteId, nom, champ, valeur], ...] (+ header row) — champ = "vote"|"choix"|"participe"
 let foodtrucks = []; // [[id, eventId, nom, prix, benefice, notes], ...] (+ header row) — réservé Admin/Coach/Salarié
+let foodtrucksCatalog = []; // [[nom, prixDefaut], ...] (+ header row) — liste des foodtrucks habituels, réservé Admin/Coach/Salarié
 let compositions = []; // [[matchId, nom, zone, libreX, libreY], ...] — zone = poste fixe (GB/AiG/.../Banc5) ou "Libre"
 let compositionsMeta = []; // [[matchId, publie], ...] — publie = "1" une fois visible aux joueurs/parents
 
