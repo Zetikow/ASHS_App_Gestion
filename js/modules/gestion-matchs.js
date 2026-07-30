@@ -342,12 +342,9 @@ function renderFoodtruckCatalogCard() {
   if (foodtrucksCatalog.length === 0) {
     html += `<div class="muted" style="font-size:12px;">Aucun foodtruck enregistré — ajoute-en un ci-dessous pour le retrouver dans la liste déroulante.</div>`;
   } else {
-    foodtrucksCatalog.forEach(([nom, prixDefaut]) => {
+    foodtrucksCatalog.forEach(([nom]) => {
       html += `<div class="paiement-row">
-        <div>
-          <div style="font-weight:700; color:#e8e8ee;">${escapeHtml(nom)}</div>
-          ${prixDefaut ? `<div class="muted" style="font-size:11px;">${escapeHtml(prixDefaut)}</div>` : ""}
-        </div>
+        <div style="font-weight:700; color:#e8e8ee;">${escapeHtml(nom)}</div>
         ${iconBtn(ICON_CROSS, "ev-del", `data-delete-foodtruck-catalog="${escapeHtml(nom)}"`)}
       </div>`;
     });
@@ -357,8 +354,6 @@ function renderFoodtruckCatalogCard() {
     html += `<div class="add-form">
       <label class="field-label">Nom du foodtruck</label>
       <input id="foodtruck-catalog-nom" type="text" placeholder="Ex: Chez Mario — Pizza" />
-      <label class="field-label">Prix par défaut (optionnel)</label>
-      <input id="foodtruck-catalog-prix" type="text" placeholder="Ex: 8€ la part" />
       <button class="btn" id="foodtruck-catalog-add" style="margin-top:6px;">Ajouter au catalogue</button>
     </div>`;
   }
@@ -369,14 +364,8 @@ function renderFoodtruckCatalogCard() {
 function renderFoodtruckSection() {
   const matches = foodtruckHomeMatches();
   const entries = foodtruckEntriesFor();
-  const total = entries.reduce((s, r) => s + (parseFloat(r[4]) || 0), 0);
 
-  let html = `<div class="pay-summary">
-    <div class="pay-summary-label">Bénéfice total foodtrucks</div>
-    <div class="pay-summary-val">${fmt(total)} €</div>
-  </div>`;
-
-  html += `<button class="btn add-btn-primary" id="toggle-add-foodtruck">${window.__showAddFoodtruck ? "− Fermer" : "+ Ajouter un passage foodtruck"}</button>`;
+  let html = `<button class="btn add-btn-primary" id="toggle-add-foodtruck">${window.__showAddFoodtruck ? "− Fermer" : "+ Ajouter un passage foodtruck"}</button>`;
   if (window.__showAddFoodtruck) {
     if (matches.length === 0) {
       html += `<div class="card muted">Aucun match à domicile enregistré pour l'instant.</div>`;
@@ -388,10 +377,8 @@ function renderFoodtruckSection() {
         <select id="foodtruck-event">
           ${matches.map(ev => `<option value="${escapeHtml(ev[0])}">${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(eventEquipe(ev))} — ${escapeHtml(formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match")}</option>`).join("")}
         </select>
-        <label class="field-label">Prix / menu</label>
-        <input id="foodtruck-prix" type="text" placeholder="Ex: 8€ la part" />
-        <label class="field-label">Bénéfice pour le club (€)</label>
-        <input id="foodtruck-benefice" type="number" step="0.5" placeholder="Ex: 85" />
+        <label class="field-label">Menu</label>
+        ${renderMenuImagePicker("foodtruck", "")}
         <label class="field-label">Notes (optionnel)</label>
         <input id="foodtruck-notes" type="text" placeholder="Ex: bien venu, prévoir 2 emplacements..." />
         <button class="btn" id="foodtruck-add" style="margin-top:6px;">Enregistrer</button>
@@ -407,7 +394,7 @@ function renderFoodtruckSection() {
   } else {
     html += `<div class="card">`;
     entries.slice().reverse().forEach(r => {
-      const [id, eventId, nom, prix, benefice, notes] = r;
+      const [id, eventId, nom, , , notes, menuImageUrl] = r;
       const ev = evenements.find(e => e[0] === eventId);
       const evLabel = ev ? `${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} · ${eventEquipe(ev)} · ${formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match"}` : "Match supprimé";
       if (window.__editingFoodtruckId === id) {
@@ -418,10 +405,8 @@ function renderFoodtruckSection() {
           <select id="edit-foodtruck-event-${id}" style="margin-bottom:6px;">
             ${matches.map(m => `<option value="${escapeHtml(m[0])}" ${m[0] === eventId ? "selected" : ""}>${eventDateObj(m).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(eventEquipe(m))} — ${escapeHtml(formatMatchDisplay(m[4], m[5]).label || m[4] || "Match")}</option>`).join("")}
           </select>
-          <label class="field-label">Prix / menu</label>
-          <input id="edit-foodtruck-prix-${id}" type="text" value="${escapeHtml(prix || "")}" style="margin-bottom:6px;" />
-          <label class="field-label">Bénéfice (€)</label>
-          <input id="edit-foodtruck-benefice-${id}" type="number" step="0.5" value="${benefice || ""}" style="margin-bottom:6px;" />
+          <label class="field-label">Menu</label>
+          ${renderMenuImagePicker(`edit-foodtruck-${id}`, menuImageUrl || "")}
           <label class="field-label">Notes</label>
           <input id="edit-foodtruck-notes-${id}" type="text" value="${escapeHtml(notes || "")}" style="margin-bottom:8px;" />
           <div class="row-flex">
@@ -431,13 +416,13 @@ function renderFoodtruckSection() {
         </div>`;
       } else {
         html += `<div class="paiement-row" style="align-items:flex-start;">
-          <div>
+          ${renderMenuThumb(menuImageUrl)}
+          <div style="flex:1;">
             <div style="font-weight:700; color:#e8e8ee;">${escapeHtml(nom || "Foodtruck")}</div>
-            <div class="muted" style="font-size:11px; margin-top:2px;">${escapeHtml(evLabel)}${prix ? " · " + escapeHtml(prix) : ""}</div>
+            <div class="muted" style="font-size:11px; margin-top:2px;">${escapeHtml(evLabel)}</div>
             ${notes ? `<div class="muted" style="font-size:11px; margin-top:2px;">${escapeHtml(notes)}</div>` : ""}
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="color:#78c850; font-weight:800;">${fmt(parseFloat(benefice) || 0)} €</span>
             ${iconBtn(ICON_EDIT, "ev-edit", `data-edit-foodtruck="${id}"`)}
             ${iconBtn(ICON_CROSS, "ev-del", `data-delete-foodtruck="${id}"`)}
           </div>
@@ -485,17 +470,149 @@ function renderGestionMatchsPage() {
   else if (section === "foodtruck" && canManageFoodtrucks()) html += renderFoodtruckSection();
   else if (section === "restaurants" && canManageRestaurants()) html += renderRestaurantsSection();
 
+  html += renderMenuImagePopup();
+
   return html;
+}
+
+// ===================== PHOTO DU MENU (foodtrucks) =====================
+// window.__pendingMenuImage[idPrefix] : URL en attente d'enregistrement pour un formulaire
+// donné, une fois la photo envoyée sur Drive (voir attachMenuImagePickerEvents). Distinct de la
+// valeur déjà enregistrée (menuImageUrl passé à renderMenuImagePicker) pour ne pas la perdre si
+// l'utilisateur annule sans valider.
+
+function readMenuImageUrl(idPrefix, existingUrl) {
+  if (window.__pendingMenuImage && Object.prototype.hasOwnProperty.call(window.__pendingMenuImage, idPrefix)) {
+    return window.__pendingMenuImage[idPrefix];
+  }
+  return existingUrl || "";
+}
+
+function clearPendingMenuImage(idPrefix) {
+  if (window.__pendingMenuImage) delete window.__pendingMenuImage[idPrefix];
+}
+
+function renderMenuImagePicker(idPrefix, existingUrl) {
+  const currentUrl = readMenuImageUrl(idPrefix, existingUrl);
+  if (window.__menuImageUploading === idPrefix) {
+    return `<div class="muted" style="font-size:11px;">Envoi de la photo en cours...</div>`;
+  }
+  if (currentUrl) {
+    return `<div class="menu-image-picker-preview">
+      <img src="${escapeHtml(currentUrl)}" alt="Menu" />
+      <button type="button" class="btn secondary" style="width:auto; padding:6px 10px; font-size:11px; margin-top:6px;" data-remove-menu-image="${escapeHtml(idPrefix)}">Retirer la photo</button>
+    </div>`;
+  }
+  return `<input type="file" accept="image/*" data-menu-file-prefix="${escapeHtml(idPrefix)}" />`;
+}
+
+// Vignette cliquable (liste "Historique") ouvrant la photo du menu en grand — voir
+// renderMenuImagePopup. Le club ne prenant pas de bénéfice sur les foodtrucks, il n'y a plus de
+// prix/bénéfice à afficher à côté, juste la photo du menu telle que fournie par le foodtruck.
+function renderMenuThumb(url) {
+  if (!url) return "";
+  return `<img src="${escapeHtml(url)}" alt="Menu" class="foodtruck-menu-thumb" data-open-menu-image="${escapeHtml(url)}" />`;
+}
+
+// Popup centré, refermable en cliquant à côté ou sur ✕ — l'image tient dans le popup par défaut
+// (défilement possible si elle dépasse) ; un tap dessus bascule vers sa taille réelle, avec
+// défilement horizontal/vertical si elle est trop grande pour l'écran (voir css .menu-image-*).
+function renderMenuImagePopup() {
+  if (!window.__menuImagePopupUrl) return "";
+  const zoomed = !!window.__menuImagePopupZoomed;
+  return `<div class="menu-image-overlay" data-close-menu-image="1">
+    <div class="menu-image-close" data-close-menu-image="1">✕</div>
+    <div class="menu-image-scroll ${zoomed ? "zoomed" : ""}">
+      <img src="${escapeHtml(window.__menuImagePopupUrl)}" alt="Menu" data-toggle-menu-image-zoom="1" />
+    </div>
+  </div>`;
+}
+
+function attachMenuImagePickerEvents() {
+  document.querySelectorAll("[data-menu-file-prefix]").forEach(el => {
+    el.onchange = async () => {
+      const idPrefix = el.dataset.menuFilePrefix;
+      const file = el.files && el.files[0];
+      if (!file) return;
+      window.__menuImageUploading = idPrefix;
+      render();
+      try {
+        const compressed = await compressImageFile(file, 1600, 0.8);
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result.split(",")[1];
+          const url = await uploadFoodtruckMenuImageApi(base64);
+          window.__menuImageUploading = null;
+          window.__pendingMenuImage = window.__pendingMenuImage || {};
+          window.__pendingMenuImage[idPrefix] = url || "";
+          render();
+        };
+        reader.readAsDataURL(compressed);
+      } catch (err) {
+        window.__menuImageUploading = null;
+        showToast("Échec de l'envoi de la photo", "error");
+        render();
+      }
+    };
+  });
+
+  document.querySelectorAll("[data-remove-menu-image]").forEach(el => {
+    el.onclick = () => {
+      window.__pendingMenuImage = window.__pendingMenuImage || {};
+      window.__pendingMenuImage[el.dataset.removeMenuImage] = "";
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-open-menu-image]").forEach(el => {
+    el.onclick = () => {
+      vibrate();
+      window.__menuImagePopupUrl = el.dataset.openMenuImage;
+      window.__menuImagePopupZoomed = false;
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-close-menu-image]").forEach(el => {
+    el.onclick = (e) => {
+      if (e.target !== e.currentTarget) return; // ne ferme pas si on clique sur l'image elle-même
+      window.__menuImagePopupUrl = null;
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-toggle-menu-image-zoom]").forEach(el => {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      window.__menuImagePopupZoomed = !window.__menuImagePopupZoomed;
+      render();
+    };
+  });
+}
+
+async function uploadFoodtruckMenuImageApi(base64) {
+  try {
+    const body = JSON.stringify({ action: "uploadFoodtruckMenuImage", base64, mimeType: "image/jpeg", filename: "menu.jpg", authNom: session.nom, authCode: session.code });
+    const res = await fetch(GOOGLE_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body });
+    const data = await res.json();
+    if (data.ok) return data.url;
+    showToast("Échec de l'envoi de la photo", "error");
+    return "";
+  } catch (err) {
+    isOnline = false;
+    showToast("Échec de l'envoi de la photo", "error");
+    return "";
+  }
 }
 
 // ===================== ACTIONS API : FOODTRUCKS =====================
 
-async function addFoodtruckApi(eventId, nom, prix, benefice, notes) {
+async function addFoodtruckApi(eventId, nom, menuImageUrl, notes) {
   const tempId = "temp_" + Date.now();
-  foodtrucks.push([tempId, eventId, nom, prix, benefice, notes || ""]);
+  foodtrucks.push([tempId, eventId, nom, "", "", notes || "", menuImageUrl || ""]);
   render();
   try {
-    const params = new URLSearchParams({ action: "addFoodtruck", eventId, nom, prix, benefice, notes: notes || "", authNom: session.nom, authCode: session.code });
+    const params = new URLSearchParams({ action: "addFoodtruck", eventId, nom, notes: notes || "", menuImageUrl: menuImageUrl || "", authNom: session.nom, authCode: session.code });
     const res = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
     const data = await res.json();
     if (data.ok) {
@@ -513,9 +630,9 @@ async function addFoodtruckApi(eventId, nom, prix, benefice, notes) {
   }
 }
 
-async function updateFoodtruckApi(id, eventId, nom, prix, benefice, notes) {
+async function updateFoodtruckApi(id, eventId, nom, menuImageUrl, notes) {
   try {
-    const params = new URLSearchParams({ action: "updateFoodtruck", id, eventId, nom, prix, benefice, notes: notes || "", authNom: session.nom, authCode: session.code });
+    const params = new URLSearchParams({ action: "updateFoodtruck", id, eventId, nom, notes: notes || "", menuImageUrl: menuImageUrl || "", authNom: session.nom, authCode: session.code });
     await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
     window.__editingFoodtruckId = null;
     await fetchAll();
@@ -530,11 +647,11 @@ async function deleteFoodtruckApi(id) {
   } catch (err) { isOnline = false; render(); }
 }
 
-async function addFoodtruckCatalogApi(nom, prixDefaut) {
+async function addFoodtruckCatalogApi(nom) {
   const tempPresent = foodtrucksCatalog.some(r => r[0] === nom);
-  if (!tempPresent) { foodtrucksCatalog.push([nom, prixDefaut || ""]); render(); }
+  if (!tempPresent) { foodtrucksCatalog.push([nom, ""]); render(); }
   try {
-    const params = new URLSearchParams({ action: "addFoodtruckCatalog", nom, prixDefaut: prixDefaut || "", authNom: session.nom, authCode: session.code });
+    const params = new URLSearchParams({ action: "addFoodtruckCatalog", nom, authNom: session.nom, authCode: session.code });
     const res = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
     const data = await res.json();
     if (data.ok) {
@@ -678,24 +795,26 @@ function attachGestionMatchsEvents() {
   if (toggleAddFoodtruck) toggleAddFoodtruck.onclick = () => {
     vibrate();
     window.__showAddFoodtruck = !window.__showAddFoodtruck;
+    clearPendingMenuImage("foodtruck");
     render();
   };
 
   // Sélecteur "liste" du nom : bascule vers la saisie libre sur "Autre", et pré-remplit le prix
   // par défaut du catalogue quand un foodtruck connu est choisi (uniquement sur le formulaire
   // d'ajout — en édition, on ne veut pas écraser un prix déjà personnalisé).
-  attachFoodtruckNomSelectEvents("foodtruck", true);
+  attachFoodtruckNomSelectEvents("foodtruck");
+  attachMenuImagePickerEvents();
 
   const foodtruckAdd = document.getElementById("foodtruck-add");
   if (foodtruckAdd) foodtruckAdd.onclick = () => {
     const eventId = document.getElementById("foodtruck-event").value;
     const nom = readFoodtruckNomFromForm("foodtruck");
-    const prix = document.getElementById("foodtruck-prix").value.trim();
-    const benefice = parseFloat(document.getElementById("foodtruck-benefice").value) || 0;
+    const menuImageUrl = readMenuImageUrl("foodtruck", "");
     const notes = document.getElementById("foodtruck-notes").value.trim();
     if (!nom || !eventId) return;
     window.__showAddFoodtruck = false;
-    addFoodtruckApi(eventId, nom, prix, benefice, notes);
+    clearPendingMenuImage("foodtruck");
+    addFoodtruckApi(eventId, nom, menuImageUrl, notes);
   };
 
   document.querySelectorAll("[data-edit-foodtruck]").forEach(el => {
@@ -703,21 +822,26 @@ function attachGestionMatchsEvents() {
   });
 
   document.querySelectorAll("[data-cancel-edit-foodtruck]").forEach(el => {
-    el.onclick = () => { window.__editingFoodtruckId = null; render(); };
+    el.onclick = () => {
+      clearPendingMenuImage(`edit-foodtruck-${window.__editingFoodtruckId}`);
+      window.__editingFoodtruckId = null;
+      render();
+    };
   });
 
-  if (window.__editingFoodtruckId) attachFoodtruckNomSelectEvents(`edit-foodtruck-${window.__editingFoodtruckId}`, false);
+  if (window.__editingFoodtruckId) attachFoodtruckNomSelectEvents(`edit-foodtruck-${window.__editingFoodtruckId}`);
 
   document.querySelectorAll("[data-save-foodtruck]").forEach(el => {
     el.onclick = () => {
       const id = el.dataset.saveFoodtruck;
       const eventId = document.getElementById(`edit-foodtruck-event-${id}`).value;
       const nom = readFoodtruckNomFromForm(`edit-foodtruck-${id}`);
-      const prix = document.getElementById(`edit-foodtruck-prix-${id}`).value.trim();
-      const benefice = parseFloat(document.getElementById(`edit-foodtruck-benefice-${id}`).value) || 0;
+      const existing = foodtrucks.find(r => r[0] === id);
+      const menuImageUrl = readMenuImageUrl(`edit-foodtruck-${id}`, existing ? existing[6] : "");
       const notes = document.getElementById(`edit-foodtruck-notes-${id}`).value.trim();
       if (!nom || !eventId) return;
-      updateFoodtruckApi(id, eventId, nom, prix, benefice, notes);
+      clearPendingMenuImage(`edit-foodtruck-${id}`);
+      updateFoodtruckApi(id, eventId, nom, menuImageUrl, notes);
     };
   });
 
@@ -738,10 +862,9 @@ function attachGestionMatchsEvents() {
   const foodtruckCatalogAdd = document.getElementById("foodtruck-catalog-add");
   if (foodtruckCatalogAdd) foodtruckCatalogAdd.onclick = () => {
     const nom = document.getElementById("foodtruck-catalog-nom").value.trim();
-    const prixDefaut = document.getElementById("foodtruck-catalog-prix").value.trim();
     if (!nom) return;
     window.__showAddFoodtruckCatalog = false;
-    addFoodtruckCatalogApi(nom, prixDefaut);
+    addFoodtruckCatalogApi(nom);
   };
 
   document.querySelectorAll("[data-delete-foodtruck-catalog]").forEach(el => {
@@ -754,9 +877,8 @@ function attachGestionMatchsEvents() {
   attachRestaurantsEvents(); // voir cartes.js — onglet Restaurants (catalogue resto/menus)
 }
 
-// idPrefix : préfixe des ids générés par renderFoodtruckNomSelect. autofillPrix : si true, choisir
-// un foodtruck du catalogue recopie son prix par défaut dans le champ "Prix / menu" du formulaire.
-function attachFoodtruckNomSelectEvents(idPrefix, autofillPrix) {
+// idPrefix : préfixe des ids générés par renderFoodtruckNomSelect.
+function attachFoodtruckNomSelectEvents(idPrefix) {
   const select = document.getElementById(`${idPrefix}-nom-select`);
   if (!select) return;
   select.onchange = () => {
@@ -765,11 +887,6 @@ function attachFoodtruckNomSelectEvents(idPrefix, autofillPrix) {
     if (autreInput) {
       autreInput.style.display = isAutre ? "" : "none";
       if (isAutre) autreInput.focus();
-    }
-    if (autofillPrix && !isAutre && select.value) {
-      const entry = foodtrucksCatalog.find(r => r[0] === select.value);
-      const prixInput = document.getElementById(`${idPrefix}-prix`);
-      if (entry && entry[1] && prixInput && !prixInput.value) prixInput.value = entry[1];
     }
   };
 }
