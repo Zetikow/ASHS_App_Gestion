@@ -13,6 +13,7 @@ const GESTION_MATCHS_SECTIONS = [
   { id: "tablemarque", label: "Table de marque" },
   { id: "maillots", label: "Maillots" },
   { id: "foodtruck", label: "Foodtrucks" },
+  { id: "restaurants", label: "Restaurants" },
 ];
 
 // Suivi financier des foodtrucks : réservé Admin/Coach/Salarié, pas un onglet joueur/parent.
@@ -20,8 +21,16 @@ function canManageFoodtrucks() {
   return hasRole("Admin") || hasRole("Coach") || hasRole("Salarié");
 }
 
+// Catalogue restaurants (carte "Repas" SF1/SF2, voir cartes.js) : réservé Admin.
+function canManageRestaurants() {
+  return hasRole("Admin");
+}
+
 function gestionMatchsSectionsForRole() {
-  return GESTION_MATCHS_SECTIONS.filter(s => s.id !== "foodtruck" || canManageFoodtrucks());
+  return GESTION_MATCHS_SECTIONS.filter(s =>
+    (s.id !== "foodtruck" || canManageFoodtrucks()) &&
+    (s.id !== "restaurants" || canManageRestaurants())
+  );
 }
 
 // Nombre de sections affichées directement (les plus utilisées) avant de basculer les
@@ -302,7 +311,7 @@ function renderMaillotsSection(activeTeam) {
 // scoping par équipe, contrairement aux autres sections : un foodtruck ne concerne aucune
 // équipe en particulier, il vient pour une date/un match donné quelle que soit l'équipe qui joue.
 function foodtruckHomeMatches() {
-  const teams = myCarpoolTeams().filter(t => t !== "SF1");
+  const teams = myCarpoolTeams().filter(t => !SF_TEAMS.includes(t));
   return evenements.filter(ev => typeClass(ev[3]) === "match" && teams.includes(eventEquipe(ev)) && isHomeMatch(ev[5]))
     .sort((a, b) => eventDateObj(b) - eventDateObj(a));
 }
@@ -442,16 +451,16 @@ function renderFoodtruckSection() {
 }
 
 function renderGestionMatchsPage() {
-  // La SF1 n'est pas concernée par cette page (covoiturage/goûter/table de marque/maillots ne
-  // s'appliquent qu'aux équipes U17) — voir cartes.js pour l'équivalent SF1 (repas/apéro).
-  const teams = myCarpoolTeams().filter(t => t !== "SF1");
+  // SF1/SF2 ne sont pas concernées par cette page (covoiturage/goûter/table de marque/maillots
+  // ne s'appliquent qu'aux équipes U17) — voir cartes.js pour l'équivalent SF1/SF2 (repas/apéro).
+  const teams = myCarpoolTeams().filter(t => !SF_TEAMS.includes(t));
   if (teams.length === 0) {
     return `<div class="page-title">Gestion des matchs</div><div class="card"><div class="muted">Aucune équipe concernée pour ce compte.</div></div>`;
   }
   const activeTeam = (window.__covoitTeamView && teams.includes(window.__covoitTeamView)) ? window.__covoitTeamView : teams[0];
   const sortedSections = gestionMatchsSectionsSorted();
   const section = sortedSections.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : "covoiturage";
-  const needsTeam = section !== "foodtruck"; // les foodtrucks ne concernent aucune équipe en particulier
+  const needsTeam = section !== "foodtruck" && section !== "restaurants"; // ni les foodtrucks ni le catalogue restaurants ne concernent une équipe en particulier
 
   const visibleSections = sortedSections.slice(0, GESTION_MATCHS_VISIBLE_COUNT);
   const overflowSections = sortedSections.slice(GESTION_MATCHS_VISIBLE_COUNT);
@@ -474,6 +483,7 @@ function renderGestionMatchsPage() {
   else if (section === "tablemarque") html += renderTableMarqueSection(activeTeam);
   else if (section === "maillots") html += renderMaillotsSection(activeTeam);
   else if (section === "foodtruck" && canManageFoodtrucks()) html += renderFoodtruckSection();
+  else if (section === "restaurants" && canManageRestaurants()) html += renderRestaurantsSection();
 
   return html;
 }
@@ -740,6 +750,8 @@ function attachGestionMatchsEvents() {
       if (confirm(`Retirer "${nom}" du catalogue ?`)) deleteFoodtruckCatalogApi(nom);
     };
   });
+
+  attachRestaurantsEvents(); // voir cartes.js — onglet Restaurants (catalogue resto/menus)
 }
 
 // idPrefix : préfixe des ids générés par renderFoodtruckNomSelect. autofillPrix : si true, choisir

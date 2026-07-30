@@ -69,7 +69,7 @@ function setupGrid() {
     }
     sheet.getRange(totalRow, totalCol).setFormula(`=SUM(${columnToLetter(totalCol)}${firstDataRow}:${columnToLetter(totalCol)}${lastDataRow})`);
   } else {
-    Logger.log("setupGrid : PLAYERS est vide, la feuille Grid est créée sans colonne joueur pour l'instant. Remplis PLAYERS (Config.gs + club-config.js) puis relance setupGrid() une fois l'effectif SF1 connu.");
+    Logger.log("setupGrid : PLAYERS est vide, la feuille Grid est créée sans colonne joueur pour l'instant. Remplis PLAYERS (Config.gs + club-config.js) puis relance setupGrid() une fois l'effectif SF1/SF2 connu.");
   }
 
   sheet.getRange(totalRow, 1, 1, header.length).setFontWeight("bold");

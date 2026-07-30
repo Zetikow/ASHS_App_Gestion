@@ -1,7 +1,7 @@
 // ===================================================================
 // RÈGLE "DISPONIBILITÉS AVANT DIMANCHE SOIR" — chaque dimanche soir,
 // sanctionne automatiquement (comme une absence non justifiée) tout
-// joueur SF1 qui n'a pas répondu Présent/Absent aux entraînements de
+// joueur SF1/SF2 qui n'a pas répondu Présent/Absent aux entraînements de
 // la semaine à venir, plus les rappels par mail associés.
 // ===================================================================
 
@@ -36,12 +36,12 @@ function checkDisponibilitesDimanche() {
   const now = new Date();
   const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  // Entraînements SF1 de la semaine à venir (la caisse noire reste réservée à la SF1 pour le moment)
+  // Entraînements SF1/SF2 de la semaine à venir (la caisse noire reste réservée à SF1/SF2 pour le moment)
   const upcomingTrainings = [];
   for (let i = 1; i < evenements.length; i++) {
     const row = evenements[i];
     if (!row[0] || row[3] !== "Entraînement") continue;
-    if (String(row[6] || "SF1").trim() !== "SF1") continue;
+    if (SF_TEAMS.indexOf(String(row[6] || "SF1").trim()) === -1) continue;
     const d = new Date(String(row[1]) + "T" + (row[2] || "00:00"));
     if (d >= now && d <= in7Days) upcomingTrainings.push(row);
   }
@@ -52,14 +52,14 @@ function checkDisponibilitesDimanche() {
     if (presenceEv[i][0] && presenceEv[i][1]) responded.add(`${presenceEv[i][0]}_${presenceEv[i][1]}`);
   }
 
-  const joueursSF1 = [];
+  const joueursSF = [];
   for (let i = 1; i < comptes.length; i++) {
-    if (rowHasRole(comptes[i], "Joueur") && rowEquipesForRole(comptes[i], "Joueur").indexOf("SF1") !== -1) joueursSF1.push(comptes[i][COL_NOM]);
+    if (rowHasRole(comptes[i], "Joueur") && rowEquipesForRole(comptes[i], "Joueur").some(t => SF_TEAMS.indexOf(t) !== -1)) joueursSF.push(comptes[i][COL_NOM]);
   }
 
   upcomingTrainings.forEach(ev => {
     const eventId = ev[0];
-    joueursSF1.forEach(nom => {
+    joueursSF.forEach(nom => {
       const key = `${eventId}_${nom}`;
       if (!responded.has(key)) {
         presenceEvSheet.appendRow([eventId, nom, "Non", "Non renseigné avant l'échéance du dimanche soir (sanction automatique)"]);
@@ -69,7 +69,7 @@ function checkDisponibilitesDimanche() {
   });
 }
 
-// Envoie un rappel par mail aux joueurs SF1 qui n'ont pas encore répondu à un entraînement
+// Envoie un rappel par mail aux joueurs SF1/SF2 qui n'ont pas encore répondu à un entraînement
 // à venir dans les 7 prochains jours — même périmètre exact que checkDisponibilitesDimanche,
 // pour que le rappel corresponde toujours à ce qui sera sanctionné.
 // mode = "friday" (rappel standard) ou "sunday" (dernier rappel, ton plus urgent).
@@ -88,7 +88,7 @@ function sendDisponibilitesReminders(mode) {
   const now = new Date();
   const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  // Tous les entraînements à venir, toutes équipes confondues (plus limité à la SF1).
+  // Tous les entraînements à venir, toutes équipes confondues (plus limité à SF1/SF2).
   const upcomingTrainings = [];
   for (let i = 1; i < evenements.length; i++) {
     const row = evenements[i];
@@ -122,11 +122,12 @@ function sendDisponibilitesReminders(mode) {
     if (pending.length === 0) return;
     if (!j.email) return; // pas d'adresse mail renseignée : rien à envoyer pour cette personne
 
-    // La sanction caisse noire ne concerne que la SF1 — on ne la mentionne pas aux autres équipes.
-    const urgencyLine = j.equipe === "SF1"
+    // La sanction caisse noire ne concerne que SF1/SF2 — on ne la mentionne pas aux autres équipes.
+    const isSF = SF_TEAMS.indexOf(j.equipe) !== -1;
+    const urgencyLine = isSF
       ? (mode === "sunday" ? "C'est aujourd'hui le dernier délai : réponds avant minuit pour éviter la sanction." : "Tu as jusqu'à dimanche minuit pour répondre.")
       : (mode === "sunday" ? "C'est aujourd'hui le dernier délai pour répondre, merci de penser à ton coach !" : "Merci de répondre avant dimanche pour que ton coach puisse s'organiser.");
-    const sanctionLine = j.equipe === "SF1" ? "Sans réponse, une sanction de 1€ sera automatiquement ajoutée à ta caisse noire.\n\n" : "";
+    const sanctionLine = isSF ? "Sans réponse, une sanction de 1€ sera automatiquement ajoutée à ta caisse noire.\n\n" : "";
 
     const liste = pending.map(t => "- " + t.titre + " (" + Utilities.formatDate(t.date, Session.getScriptTimeZone(), "dd/MM 'à' HH:mm") + ")").join("\n");
     const body = "Bonjour " + j.nom + ",\n\n"
@@ -158,7 +159,7 @@ function testEmailNotification() {
         Logger.log("Aucune adresse mail enregistrée pour ce compte — renseigne-la sur le Profil de l'appli, puis relance ce test.");
         return;
       }
-      MailApp.sendEmail(email, "Test ASHS", "Si tu reçois ce mail, les rappels par mail fonctionnent bien !", { name: CLUB_NAME + " SF1" });
+      MailApp.sendEmail(email, "Test ASHS", "Si tu reçois ce mail, les rappels par mail fonctionnent bien !", { name: CLUB_NAME });
       Logger.log("Mail de test envoyé à " + email);
       return;
     }

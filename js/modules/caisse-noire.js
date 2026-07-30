@@ -1,6 +1,6 @@
 // ===================================================================
 // CAISSE NOIRE — barème de sanctions par joueuse (feuille "Grid").
-// Module optionnel : réservé à la SF1 dans ce club (voir getTabsForRole
+// Module optionnel : réservé à SF1/SF2 dans ce club (voir getTabsForRole
 // dans core/render.js), à retirer avec sa condition pour un autre club.
 // ===================================================================
 

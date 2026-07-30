@@ -312,10 +312,10 @@ function renderHome() {
   html += renderNextEventCard();
   html += renderWeeklyRecapCard();
 
-  // Stats compactes : caisse noire (SF1 uniquement, structure Grid figée) + présence perso
+  // Stats compactes : caisse noire (SF1/SF2 uniquement, structure Grid figée) + présence perso
   // (tirée du roster réel de l'équipe, pas de la liste PLAYERS figée — sinon un joueur peut
   // avoir sa présence correcte sur la page Présence mais rien sur l'Accueil).
-  const inCaisseNoire = PLAYERS.map(p => p.trim()).includes((session.nom || "").trim()) && (isInTeam("SF1") || hasRole("Admin"));
+  const inCaisseNoire = PLAYERS.map(p => p.trim()).includes((session.nom || "").trim()) && (isInSFTeam() || hasRole("Admin"));
   const joueurIdentity = myJoueurIdentity();
   const inPresenceRoster = !!joueurIdentity && rosterForEquipe(joueurIdentity.equipe).includes(joueurIdentity.nom);
   if (inCaisseNoire || inPresenceRoster) {
@@ -441,16 +441,16 @@ function getTabsForRole() {
     tabs.push({ id: "agenda", label: "Agenda", main: true });
   }
   tabs.push({ id: "actualites", label: "Actualités", main: true });
-  // Caisse noire reste réservée à la SF1 pour le moment (l'Admin garde accès à tout, peu
-  // importe son équipe). On l'affiche si l'un des rôles cumulés donne accès à la SF1.
-  const isSF1 = isInTeam("SF1") || hasRole("Admin");
-  if (isSF1 && (hasRole("Joueur") || hasRole("Coach") || hasRole("Admin"))) {
+  // Caisse noire reste réservée à la SF1/SF2 pour le moment (l'Admin garde accès à tout, peu
+  // importe son équipe). On l'affiche si l'un des rôles cumulés donne accès à SF1 ou SF2.
+  const isSF = isInSFTeam() || hasRole("Admin");
+  if (isSF && (hasRole("Joueur") || hasRole("Coach") || hasRole("Admin"))) {
     tabs.push({ id: "table", label: "Caisse", main: true });
   }
 
   const extraCandidates = [];
   if (hasRole("Coach") || hasRole("Admin")) extraCandidates.push({ id: "presence", label: "Présence", main: false });
-  if (hasRole("Admin") || ((hasRole("Joueur") || hasRole("Coach")) && isInTeam("SF1"))) extraCandidates.push({ id: "paiements", label: "Paiements", main: false });
+  if (hasRole("Admin") || ((hasRole("Joueur") || hasRole("Coach")) && isInSFTeam())) extraCandidates.push({ id: "paiements", label: "Paiements", main: false });
   if (hasRole("Salarié") || hasRole("Admin")) extraCandidates.push({ id: "salaries", label: "Espace salariés", main: false });
   const hasCovoit = hasRole("Admin") || isU17;
 

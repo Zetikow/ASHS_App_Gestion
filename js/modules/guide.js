@@ -4,7 +4,7 @@
 // ===================================================================
 
 function guideSections() {
-  const isSF1 = isInTeam("SF1") || hasRole("Admin");
+  const isSF = isInSFTeam() || hasRole("Admin");
   const isU17 = isInTeam("U17M1") || isInTeam("U17M2") || hasRole("Admin");
   return [
     { title: "Se connecter", items: [
@@ -15,7 +15,7 @@ function guideSections() {
     { title: "Accueil", items: [
       "Le prochain événement est mis en avant, avec un bouton Présent/Absent en un tap.",
       "Les résultats et prochains matchs de ton équipe défilent en carrousel (glisse ou utilise les flèches) — vert pour une victoire.",
-      isSF1 ? "Un encart Caisse noire et Présence apparaît si ton rôle y donne accès." : "Un encart Présence apparaît si ton rôle y donne accès.",
+      isSF ? "Un encart Caisse noire et Présence apparaît si ton rôle y donne accès." : "Un encart Présence apparaît si ton rôle y donne accès.",
     ]},
     { title: "Agenda", items: [
       "Matchs, entraînements, repas, soirées — filtrés par équipe si tu en as plusieurs.",
@@ -34,20 +34,21 @@ function guideSections() {
       "Publications de ton équipe et publications générales du club.",
       "Coach, Admin et Salarié peuvent publier une actualité.",
     ]},
-    ...(isSF1 ? [{ title: "Caisse noire (SF1)", items: [
-      "Chaque joueuse SF1 voit sa carte avec le détail des actions et le total dû, ainsi que le montant déjà payé.",
+    ...(isSF ? [{ title: "Caisse noire (SF1/SF2)", items: [
+      "Chaque joueuse SF1/SF2 voit sa carte avec le détail des actions et le total dû, ainsi que le montant déjà payé.",
       "Pour un retard (entraînement ou match), indique juste le nombre de minutes — le montant se calcule automatiquement selon le barème.",
       "Seul l'Admin peut modifier un compteur en cas d'erreur, ou consulter le tableau détaillé complet.",
     ]}] : []),
-    ...(isSF1 ? [{ title: "Repas après match (SF1)", items: [
-      "Fonctionne comme la caisse noire : suivi de la présence (ou absence) au repas d'après-match par joueuse.",
+    ...(isSF ? [{ title: "Repas après match (SF1/SF2)", items: [
+      "Chaque joueuse coche \"Je participe\" pour se signaler présente.",
+      "Le Coach/Admin fixe le restaurant (catalogue géré par l'Admin dans Gestion des matchs → Restaurants) puis assigne un plat à chaque présente — le total dû se calcule automatiquement à partir des prix du menu.",
       "Sert de base au calcul de la participation demandée sur la page Paiement.",
     ]}] : []),
     { title: "Présence", items: [
       "Réservé au Coach et à l'Admin : historique complet et moyennes de présence par joueur.",
       isU17 ? "Pour les U17, une section supplémentaire suit les \"brûlages\" : le nombre de matchs joués par chaque U17M2 avec l'équipe U17M1, pour respecter le plafond autorisé." : null,
     ].filter(Boolean)},
-    ...(isSF1 ? [{ title: "Paiement (SF1)", items: [
+    ...(isSF ? [{ title: "Paiement (SF1/SF2)", items: [
       "Deux sections séparées, chacune avec son propre lien PayPal : Repas après match, et Caisse noire.",
       "Chaque joueuse ne voit que son propre montant dû.",
     ]}] : []),

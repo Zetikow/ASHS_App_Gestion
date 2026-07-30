@@ -26,6 +26,7 @@ function setup() {
   setupCartes();
   setupFoodtrucks();
   setupFoodtrucksCatalog();
+  setupRestaurants();
   setupSupport();
   setupCompositions();
   ensureGridAction("Non renseigné avant dimanche soir", 1); // lié à Notifications.gs (checkDisponibilitesDimanche)
@@ -213,6 +214,64 @@ function addRealSF1AndU17MRoster2026() {
     ["Louis M.", "Joueur:U17M1"],
     ["Clément R.", "Joueur:U17M1"],
   ]);
+}
+
+// ===================== SCISSION SF1 -> SF1 + SF2 (saison 2026-2027) =====================
+// À exécuter UNE FOIS depuis l'éditeur (menu déroulant > migrateSF1ToSF1AndSF2 > Exécuter),
+// après avoir redéployé le code mis à jour (TEAMS inclut désormais "SF2" et "Prépa physique").
+// Change l'équipe de chaque paire role:équipe listée ci-dessous (ex: "Joueur:SF1" ->
+// "Joueur:SF2") dans la feuille Comptes, sans toucher aux autres rôles éventuels de la même
+// personne (ex: Perrine S. reste aussi Coach:U17M1,Coach:U17M2). Idempotent : si une personne a
+// déjà l'équipe cible (ou n'a plus l'équipe source), elle est simplement ignorée — sans danger à
+// relancer plusieurs fois par erreur.
+function migrateSF1ToSF1AndSF2() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Comptes");
+  ensureComptesSchema(sheet);
+  const data = sheet.getDataRange().getValues();
+  const rowIndexByNom = {};
+  for (let i = 1; i < data.length; i++) rowIndexByNom[String(data[i][COL_NOM]).trim()] = i;
+
+  // [nom, role, équipe actuelle, nouvelle équipe]
+  const moves = [
+    // Coachs
+    ["Benjamin T.", "Coach", "SF1", "Prépa physique"],
+    ["Damba C.", "Coach", "SF1", "SF2"],
+    ["Matteo S.", "Coach", "SF1", "SF2"],
+    // Geneviève M. et Simon B. restent Coach:SF1, pas de changement.
+    // Joueuses -> SF2 (les autres joueuses SF1 de addRealSF1AndU17MRoster2026 restent SF1)
+    ["Alicia G.", "Joueur", "SF1", "SF2"],
+    ["Amélie T.", "Joueur", "SF1", "SF2"],
+    ["Délia DS.", "Joueur", "SF1", "SF2"],
+    ["Fantine C.", "Joueur", "SF1", "SF2"],
+    ["Hatice K.", "Joueur", "SF1", "SF2"],
+    ["Julianne B.", "Joueur", "SF1", "SF2"],
+    ["Léa S.", "Joueur", "SF1", "SF2"],
+    ["Lisa L.", "Joueur", "SF1", "SF2"],
+    ["Lisa S.", "Joueur", "SF1", "SF2"],
+    ["Lucie F.", "Joueur", "SF1", "SF2"],
+    ["Margaux C.", "Joueur", "SF1", "SF2"],
+    ["Margaux J.", "Joueur", "SF1", "SF2"],
+    ["Mathilde K.", "Joueur", "SF1", "SF2"],
+    ["Nil S.", "Joueur", "SF1", "SF2"],
+    ["Philomène C.", "Joueur", "SF1", "SF2"],
+    ["Sarah DC.", "Joueur", "SF1", "SF2"],
+    ["Valentine W.", "Joueur", "SF1", "SF2"],
+  ];
+
+  let deplaces = 0, ignores = 0;
+  moves.forEach(([nom, role, fromEquipe, toEquipe]) => {
+    const rowIdx = rowIndexByNom[nom.trim()];
+    if (rowIdx === undefined) { Logger.log("Ignoré (compte introuvable) : " + nom); ignores++; return; }
+    const roles = parseRoles(data[rowIdx][COL_ROLES]);
+    const pair = roles.find(r => r.role === role && r.equipe === fromEquipe);
+    if (!pair) { Logger.log("Ignoré (déjà migré ou rôle absent) : " + nom + " " + role + ":" + fromEquipe); ignores++; return; }
+    pair.equipe = toEquipe;
+    sheet.getRange(rowIdx + 1, COL_ROLES + 1).setValue(stringifyRoles(roles));
+    deplaces++;
+  });
+
+  Logger.log(`${deplaces} rôle(s) déplacé(s), ${ignores} ignoré(s) (déjà migré ou introuvable). Pense à relancer setupGrid() si besoin — la feuille Grid n'est pas affectée par cette migration (une colonne par personne, pas par équipe).`);
 }
 
 // À exécuter UNE FOIS depuis l'éditeur pour créer deux comptes génériques de test, un par équipe

@@ -42,25 +42,31 @@ const ACTIONS = [
   ["Autre (à préciser)", 1],
 ];
 
-// Effectif réel SF1 (la caisse noire ne concerne que cette équipe pour l'instant, voir
-// isInTeam("SF1") dans les pages Caisse noire / Repas après match / Paiement). Doit rester
-// identique à PLAYERS dans apps-script/Config.gs. ATTENTION : relancer setupGrid() (ou setup())
-// après avoir rempli cette liste efface le contenu actuel de la feuille Grid (sheet.clear())
-// avant de la reconstruire avec ces colonnes — à ne faire qu'une fois, en connaissance de cause.
+// Effectif réel SF1 + SF2 (la caisse noire concerne les deux équipes séniors, voir isInSFTeam()
+// dans les pages Caisse noire / Repas après match / Paiement — le barème/la feuille Grid restent
+// communs aux deux, une colonne par personne peu importe si elle est SF1 ou SF2 cette saison).
+// Doit rester identique à PLAYERS dans apps-script/Config.gs. ATTENTION : relancer setupGrid()
+// (ou setup()) après avoir rempli cette liste efface le contenu actuel de la feuille Grid
+// (sheet.clear()) avant de la reconstruire avec ces colonnes — à ne faire qu'une fois, en
+// connaissance de cause.
 const PLAYERS = ["Alicia G.","Amélie T.","Caroline S.","Charline G.","Clara O.","Délia DS.","Enora KM.","Fantine C.","Flavie M.","Géraldine W.","Hatice K.","Hélène S.","Helin A.","Iris A.","Julianne B.","Juliette B.","Juliette L.","Laura T.","Léa S.","Lisa L.","Lisa S.","Lou-Anne C.","Lucie F.","Margaux C.","Margaux J.","Marie O.","Marion S.","Mathilde K.","Mathilde M.","Myngoc T.","Nil S.","Patricia G.","Peggy J.","Perrine S.","Philomène C.","Sarah DC.","Valentine W."];
 
-// À COMPLÉTER : ton identifiant PayPal.me pour la caisse noire SF1 (ex: "ASHSCaisseNoire").
+// À COMPLÉTER : ton identifiant PayPal.me pour la caisse noire SF1/SF2 (ex: "ASHSCaisseNoire").
 // Laisse vide "" tant que ce n'est pas créé : le bouton Payer reste alors simplement masqué.
 const PAYPAL_ME_USERNAME = "";
-// À COMPLÉTER : identifiant PayPal.me séparé pour la vie d'équipe / repas après match SF1
+// À COMPLÉTER : identifiant PayPal.me séparé pour la vie d'équipe / repas après match SF1/SF2
 // (voir la page Paiement, section dédiée). Vide "" tant que non créé.
 const PAYPAL_ME_USERNAME_VIE_EQUIPE = "";
 
-const TEAMS = ["SF1", "U17M1", "U17M2"];
+const TEAMS = ["SF1", "SF2", "U17M1", "U17M2", "Prépa physique"];
 // Les deux équipes U17 s'entraînent ensemble (entraînements communs, effectif combiné pour la
 // composition d'équipe, suivi des brûlages) — voir eventVisibleForTeam (agenda.js) et
 // compositionRoster (composition.js).
 const U17_TEAMS = ["U17M1", "U17M2"];
+// SF1 et SF2 restent deux équipes distinctes (pas d'entraînement commun ni de composition
+// mutualisée comme U17_TEAMS) mais partagent les mêmes fonctionnalités séniors — caisse noire,
+// repas après match, paiements — voir isInSFTeam() dans state.js.
+const SF_TEAMS = ["SF1", "SF2"];
 // Nombre max de matchs qu'un joueur U17M2 peut jouer avec l'U17M1 avant de ne plus pouvoir
 // redescendre en M2 (règle fédérale de "brûlage") — voir bruleMatchesFor (composition.js).
 const BRULAGE_MAX_MATCHES = 10;
@@ -72,6 +78,7 @@ const EMAIL_REMINDER_UI_VISIBLE = true;
 // pas des URLs d'iframe. Laisse vide "" tant que le widget n'est pas encore créé.
 const SCORENCO_WIDGET_IDS = {
   SF1: "",
+  SF2: "",
   U17M1: "",
   U17M2: "",
 };

@@ -55,6 +55,11 @@ const API_HANDLERS = {
   deleteFoodtruck: api_deleteFoodtruck,                     // Foodtrucks.gs
   addFoodtruckCatalog: api_addFoodtruckCatalog,             // FoodtrucksCatalog.gs
   deleteFoodtruckCatalog: api_deleteFoodtruckCatalog,       // FoodtrucksCatalog.gs
+  addRestaurant: api_addRestaurant,                         // Restaurants.gs
+  deleteRestaurant: api_deleteRestaurant,                   // Restaurants.gs
+  addRestaurantMenuItem: api_addRestaurantMenuItem,         // Restaurants.gs
+  deleteRestaurantMenuItem: api_deleteRestaurantMenuItem,   // Restaurants.gs
+  setCarteRestaurant: api_setCarteRestaurant,               // Cartes.gs
 };
 
 // Toute action passe par ce try/catch : sans lui, une erreur non prévue dans un handler (ex:

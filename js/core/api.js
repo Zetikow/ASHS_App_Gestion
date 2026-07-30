@@ -28,6 +28,8 @@ async function fetchAll() {
     compositionsMeta = (data.compositionsMeta || []).slice(1).filter(r => r[0]);
     foodtrucks = (data.foodtrucks || []).slice(1).filter(r => r[0]);
     foodtrucksCatalog = (data.foodtrucksCatalog || []).slice(1).filter(r => r[0]);
+    restaurants = (data.restaurants || []).slice(1).filter(r => r[0]);
+    restaurantsMenus = (data.restaurantsMenus || []).slice(1).filter(r => r[0]);
     const parsedPE = parsePresenceEvenements(data.presenceEvenements || []);
     presenceEvenements = parsedPE.p;
     presenceJustifications = parsedPE.j;

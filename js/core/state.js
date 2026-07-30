@@ -25,10 +25,12 @@ let covoiturage = []; // [[eventId, nom, jeConduit, places, besoinPlace], ...] (
 let gouter = []; // [[eventId, nom, quoi], ...] (+ header row) — matchs à domicile
 let tableMarque = []; // [[eventId, nom, disponible], ...] (+ header row) — domicile et extérieur
 let maillots = []; // [[eventId, nom, pris], ...] (+ header row) — nombre de fois = compte des lignes par joueur
-let cartes = []; // [[id, eventId, type, titre, optionsJSON, total], ...] (+ header row) — cartes "repas"/"apero" sur un événement SF1
-let cartesReponses = []; // [[carteId, nom, champ, valeur], ...] (+ header row) — champ = "vote"|"choix"|"participe"
+let cartes = []; // [[id, eventId, type, titre, optionsJSON, total, restaurant], ...] (+ header row) — cartes "repas"/"apero" sur un événement SF1/SF2
+let cartesReponses = []; // [[carteId, nom, champ, valeur], ...] (+ header row) — champ = "vote"|"choix"|"participe"|"plat"
 let foodtrucks = []; // [[id, eventId, nom, prix, benefice, notes], ...] (+ header row) — réservé Admin/Coach/Salarié
 let foodtrucksCatalog = []; // [[nom, prixDefaut], ...] (+ header row) — liste des foodtrucks habituels, réservé Admin/Coach/Salarié
+let restaurants = []; // [[nom], ...] (+ header row) — catalogue des restaurants habituels (carte "repas")
+let restaurantsMenus = []; // [[id, restaurant, plat, prix], ...] (+ header row)
 let compositions = []; // [[matchId, nom, zone, libreX, libreY], ...] — zone = poste fixe (GB/AiG/.../Banc5) ou "Libre"
 let compositionsMeta = []; // [[matchId, publie], ...] — publie = "1" une fois visible aux joueurs/parents
 
@@ -47,6 +49,11 @@ function equipesForRole(roleName) {
 }
 function isInTeam(equipeName) {
   return !!session && Array.isArray(session.roles) && session.roles.some(r => r.equipe === equipeName);
+}
+// SF1 et SF2 sont deux équipes distinctes mais partagent les mêmes fonctionnalités séniors
+// (caisse noire, repas après match, paiements) — voir SF_TEAMS (club-config.js).
+function isInSFTeam() {
+  return SF_TEAMS.some(t => isInTeam(t));
 }
 // Équipe "par défaut" à utiliser quand le contexte ne précise pas de rôle particulier —
 // priorité Joueur, puis Coach, puis la première équipe disponible.

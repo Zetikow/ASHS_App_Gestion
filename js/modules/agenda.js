@@ -506,7 +506,7 @@ function renderNextEventCard() {
 function renderGenerateTrainingsForm(equipe) {
   let defMardiDate = "", defMardiHeure = "20:00", defMardiLieu = DEFAULT_VENUE_NAME;
   let defJeudiDate = "", defJeudiHeure = "20:00", defJeudiLieu = DEFAULT_VENUE_NAME;
-  if (equipe === "SF1") {
+  if (SF_TEAMS.includes(equipe)) {
     defMardiDate = formatDateKey(SEASON_START);
     defJeudiDate = formatDateKey(SEASON_START);
     defJeudiHeure = "20:15";
@@ -790,7 +790,7 @@ function renderEventCard(ev, canManage, isPast, showTeamBadge, staggerIndex) {
       ${val === 'Non' ? renderJustifBlock(id) : ""}` : `<div class="muted" style="margin-top:8px; font-size:11.5px;">Présence de ${escapeHtml(presIdentity.nom)} : ${val === "Oui" ? "✅ Présent" : val === "Non" ? "❌ Absent" : "⏳ Pas encore répondu"}</div>`)
       ) : ""}
       ${renderCompositionCardButtons(ev)}
-      ${eventEquipe(ev) === "SF1" ? renderCartesForEvent(ev, canManage) : ""}
+      ${SF_TEAMS.includes(eventEquipe(ev)) ? renderCartesForEvent(ev, canManage) : ""}
     </div>
   </div>`;
 }
