@@ -495,10 +495,12 @@ function renderNextEventCard() {
 
   return `<div class="next-card"><div class="nc-inner">
     <div class="nc-glow"></div>
-    <span class="ev-type ${typeClass(type)}">${type || "Événement"}</span>
-    <div class="nc-countdown" style="margin-left:6px;">⚡ ${countdownLabel}</div>
-    <div class="nc-title">${ev[4] || "Événement"}</div>
-    <div class="nc-meta">${formatEventDateFr(ev)} ${ev[2] ? "· " + formatHeure(ev) : ""} ${ev[5] ? "· " + ev[5] : ""}</div>
+    <div class="sheet-open-zone" data-open-event-detail="${id}">
+      <span class="ev-type ${typeClass(type)}">${type || "Événement"}</span>
+      <div class="nc-countdown" style="margin-left:6px;">⚡ ${countdownLabel}</div>
+      <div class="nc-title">${ev[4] || "Événement"}</div>
+      <div class="nc-meta">${formatEventDateFr(ev)} ${ev[2] ? "· " + formatHeure(ev) : ""} ${ev[5] ? "· " + ev[5] : ""}</div>
+    </div>
     ${actionsHtml}
   </div></div>`;
 }
@@ -552,16 +554,22 @@ function coalesceU17(teams) {
   return out;
 }
 
-function renderAgenda() {
-  // "Salarié pur" = sans autre rôle lié à une équipe (Joueur/Coach/Admin). Un compte qui cumule
-  // Salarié + un autre rôle (ex: Joueur SF1 + Coach U17 + Admin + Salarié) garde son accès complet
-  // aux équipes — seul un Salarié sans aucun autre rôle est cantonné à la vue "Toutes équipes".
+// Contexte partagé par renderAgenda() et renderAddEventSheet() (portée en fiche, voir plus bas) :
+// "Salarié pur" = sans autre rôle lié à une équipe (Joueur/Coach/Admin). Un compte qui cumule
+// Salarié + un autre rôle (ex: Joueur SF1 + Coach U17 + Admin + Salarié) garde son accès complet
+// aux équipes — seul un Salarié sans aucun autre rôle est cantonné à la vue "Toutes équipes".
+function agendaContext() {
   const isSalarie = hasRole("Salarié") && !hasRole("Joueur") && !hasRole("Coach") && !hasRole("Admin");
   const canManage = hasRole("Coach") || hasRole("Admin") || isSalarie;
   const switcherTeams = isSalarie ? [] : coalesceU17(equipesForSwitcher());
   const rawDefaultTeam = isSalarie ? "Toutes" : (hasRole("Admin") ? (switcherTeams[0] || "SF1") : (primaryEquipe()));
   const defaultTeam = ((rawDefaultTeam === "U17M1" || rawDefaultTeam === "U17M2") && switcherTeams.includes("U17")) ? "U17" : rawDefaultTeam;
   const activeTeam = isSalarie ? "Toutes" : ((window.__agendaTeamView && switcherTeams.includes(window.__agendaTeamView)) ? window.__agendaTeamView : defaultTeam);
+  return { isSalarie, canManage, switcherTeams, activeTeam };
+}
+
+function renderAgenda() {
+  const { isSalarie, canManage, switcherTeams, activeTeam } = agendaContext();
   const pageSub = activeTeam === "Toutes"
     ? "Événements du club."
     : (activeTeam === "U17" ? "Matchs, entraînements et événements de U17 (M1 et M2)."
@@ -569,55 +577,7 @@ function renderAgenda() {
   let html = `<div class="page-title">Agenda</div><div class="page-sub">${pageSub}</div>`;
 
   if (canManage) {
-    html += `<button class="btn add-btn-primary" id="toggle-add-event">${showAddEvent ? "− Fermer" : "+ Ajouter un événement"}</button>`;
-    if (showAddEvent) {
-      const effectiveType = window.__addEventType || (isSalarie ? "Repas" : "Match");
-      const isMatchType = effectiveType === "Match";
-      // Un entraînement U17 est commun aux deux équipes (voir eventVisibleForTeam) : inutile de
-      // demander M1 ou M2, ça n'a pas d'incidence sur qui le voit. Un match, en revanche, ne
-      // concerne qu'une seule des deux équipes — on demande alors explicitement laquelle, y
-      // compris à un Coach (pas seulement l'Admin) s'il encadre les deux équipes U17.
-      const myCoachTeams = (session.roles || []).filter(r => r.role === "Coach").map(r => r.equipe);
-      const showEquipeSelect = hasRole("Admin") || (isMatchType && myCoachTeams.length > 1);
-      const equipeOptions = hasRole("Admin") ? TEAMS : myCoachTeams;
-      html += `<div class="add-form">
-        <label class="field-label">Date</label>
-        ${dateSelectHtml("ev-date", "")}
-        <label class="field-label">Heure</label>
-        ${heureSelectHtml("ev-heure", "")}
-        <label class="field-label">Type</label>
-        <select id="ev-type">
-          ${isSalarie ? "" : `<option value="Match" ${effectiveType === "Match" ? "selected" : ""}>Match</option><option value="Entraînement" ${effectiveType === "Entraînement" ? "selected" : ""}>Entraînement</option>`}
-          <option value="Repas" ${effectiveType === "Repas" ? "selected" : ""}>Repas</option>
-          <option value="Soirée" ${effectiveType === "Soirée" ? "selected" : ""}>Soirée</option>
-          <option value="Bénévole" ${effectiveType === "Bénévole" ? "selected" : ""}>Bénévole</option>
-          <option value="Autre" ${effectiveType === "Autre" ? "selected" : ""}>Autre</option>
-        </select>
-        ${isMatchType ? `
-        <label class="field-label">Équipe 1</label>
-        <input type="text" value="${CLUB_TEAM_NAME}" disabled style="opacity:0.6;" />
-        <label class="field-label">Adversaire</label>
-        <input id="ev-adversaire" type="text" placeholder="ex: Illkirch" />
-        ` : `
-        <label class="field-label">Titre</label>
-        <input id="ev-titre" type="text" placeholder="ex: Repas d'équipe" />
-        `}
-        <label class="field-label">Lieu</label>
-        <input id="ev-lieu" type="text" value="${DEFAULT_VENUE_NAME}" />
-        ${isMatchType && canManageFoodtrucks() ? `<label class="field-label">Foodtruck (si match à domicile)</label>
-        ${renderFoodtruckNomSelect("ev-foodtruck", "")}` : ""}
-        ${showEquipeSelect ? `<label class="field-label">Équipe</label>
-        <select id="ev-equipe">
-          ${equipeOptions.map(t => `<option value="${t}" ${(activeTeam === t || (activeTeam === "U17" && t === "U17M1")) ? "selected" : ""}>${t}</option>`).join("")}
-          ${hasRole("Admin") ? `<option value="Toutes" ${activeTeam === "Toutes" ? "selected" : ""}>Toutes (club entier)</option>` : ""}
-        </select>` : ""}
-        <label style="display:flex; align-items:center; gap:6px; margin-top:10px; font-size:11.5px; color:#e4e8f2; font-weight:700;">
-          <input id="ev-sans-presence" type="checkbox" style="width:16px; height:16px;" />
-          Visible par tout le club, sans pointage de présence
-        </label>
-        <button class="btn" id="submit-add-event" style="margin-top:4px;">Enregistrer l'événement</button>
-      </div>`;
-    }
+    html += `<button class="btn add-btn-primary" id="toggle-add-event">+ Ajouter un événement</button>`;
   }
 
   html += renderTeamSwitcher(switcherTeams, activeTeam, "agenda-team");
@@ -661,10 +621,77 @@ function renderAgenda() {
     });
   }
 
-  if (window.__compositionMatchId) html += renderCompositionEditor(window.__compositionMatchId);
-  if (window.__compositionViewMatchId) html += renderCompositionPlayerView(window.__compositionViewMatchId);
+  html += renderAddEventSheet();
 
   return html;
+}
+
+// ===================== FICHE AJOUT ÉVÉNEMENT (bottom sheet) =====================
+// Porté depuis Clubly : l'ancien formulaire "+ Ajouter un événement" inline (add-form) devient
+// une fiche qui glisse depuis le bas — voir window.__showAddEvent, câblé sur le bouton
+// #toggle-add-event dans attachAgendaEvents(), et fermé via data-close-sheet="showAddEvent".
+function renderAddEventSheet() {
+  if (!window.__showAddEvent) return "";
+  const { isSalarie, activeTeam } = agendaContext();
+  const effectiveType = window.__addEventType || (isSalarie ? "Repas" : "Match");
+  const isMatchType = effectiveType === "Match";
+  // Un entraînement U17 est commun aux deux équipes (voir eventVisibleForTeam) : inutile de
+  // demander M1 ou M2, ça n'a pas d'incidence sur qui le voit. Un match, en revanche, ne
+  // concerne qu'une seule des deux équipes — on demande alors explicitement laquelle, y
+  // compris à un Coach (pas seulement l'Admin) s'il encadre les deux équipes U17.
+  const myCoachTeams = (session.roles || []).filter(r => r.role === "Coach").map(r => r.equipe);
+  const showEquipeSelect = hasRole("Admin") || (isMatchType && myCoachTeams.length > 1);
+  const equipeOptions = hasRole("Admin") ? TEAMS : myCoachTeams;
+
+  const bodyHtml = `
+    <label class="field-label">Date</label>
+    ${dateSelectHtml("ev-date", "")}
+    <label class="field-label">Heure</label>
+    ${heureSelectHtml("ev-heure", "")}
+    <label class="field-label">Type</label>
+    <select id="ev-type">
+      ${isSalarie ? "" : `<option value="Match" ${effectiveType === "Match" ? "selected" : ""}>Match</option><option value="Entraînement" ${effectiveType === "Entraînement" ? "selected" : ""}>Entraînement</option>`}
+      <option value="Repas" ${effectiveType === "Repas" ? "selected" : ""}>Repas</option>
+      <option value="Soirée" ${effectiveType === "Soirée" ? "selected" : ""}>Soirée</option>
+      <option value="Bénévole" ${effectiveType === "Bénévole" ? "selected" : ""}>Bénévole</option>
+      <option value="Autre" ${effectiveType === "Autre" ? "selected" : ""}>Autre</option>
+    </select>
+    ${isMatchType ? `
+    <label class="field-label">Équipe 1</label>
+    <input type="text" value="${CLUB_TEAM_NAME}" disabled style="opacity:0.6;" />
+    <label class="field-label">Adversaire</label>
+    <input id="ev-adversaire" type="text" placeholder="ex: Illkirch" />
+    ` : `
+    <label class="field-label">Titre</label>
+    <input id="ev-titre" type="text" placeholder="ex: Repas d'équipe" />
+    `}
+    <label class="field-label">Lieu</label>
+    <input id="ev-lieu" type="text" value="${DEFAULT_VENUE_NAME}" />
+    ${isMatchType && canManageFoodtrucks() ? `<label class="field-label">Foodtruck (si match à domicile)</label>
+    ${renderFoodtruckNomSelect("ev-foodtruck", "")}` : ""}
+    ${showEquipeSelect ? `<label class="field-label">Équipe</label>
+    <select id="ev-equipe">
+      ${equipeOptions.map(t => `<option value="${t}" ${(activeTeam === t || (activeTeam === "U17" && t === "U17M1")) ? "selected" : ""}>${t}</option>`).join("")}
+      ${hasRole("Admin") ? `<option value="Toutes" ${activeTeam === "Toutes" ? "selected" : ""}>Toutes (club entier)</option>` : ""}
+    </select>` : ""}
+    <label style="display:flex; align-items:center; gap:6px; margin-top:10px; font-size:11.5px; color:#e4e8f2; font-weight:700;">
+      <input id="ev-sans-presence" type="checkbox" style="width:16px; height:16px;" />
+      Visible par tout le club, sans pointage de présence
+    </label>
+    <button class="btn" id="submit-add-event" style="margin-top:12px;">Enregistrer l'événement</button>`;
+
+  return `<div class="sheet-overlay open" data-close-sheet="showAddEvent">
+    <div class="sheet-scrim" data-close-sheet="showAddEvent"></div>
+    <div class="sheet">
+      <div class="sheet-close" data-close-sheet="showAddEvent">✕</div>
+      <div class="sheet-grab"></div>
+      <div class="sheet-hero">
+        <div class="sheet-hero-eyebrow">Agenda</div>
+        <h2>Ajouter un événement</h2>
+      </div>
+      <div class="sheet-body">${bodyHtml}</div>
+    </div>
+  </div>`;
 }
 
 function renderJustifBlock(eventId) {
@@ -772,14 +799,16 @@ function renderEventCard(ev, canManage, isPast, showTeamBadge, staggerIndex) {
           <div class="avatar-menu-item danger" data-delete-event="${id}">✕ Supprimer</div>
         </div>` : ""}
       </div>` : ""}
-      <div class="ev-date-top">${dateFr}${heureFmt ? " · " + heureFmt : ""}</div>
-      <div class="ev-header-row">
-        <div class="ev-title-big">${escapeHtml(displayTitre)}</div>
-        ${showTeamBadge && typeClass(type) === "match" ? `<span class="badge" style="margin-right:4px;">${escapeHtml(equipe || "")}</span>` : ""}
-        <span class="ev-type-big ${typeClass(type)}">${type || "Événement"}</span>
+      <div class="sheet-open-zone" data-open-event-detail="${id}">
+        <div class="ev-date-top">${dateFr}${heureFmt ? " · " + heureFmt : ""}</div>
+        <div class="ev-header-row">
+          <div class="ev-title-big">${escapeHtml(displayTitre)}</div>
+          ${showTeamBadge && typeClass(type) === "match" ? `<span class="badge" style="margin-right:4px;">${escapeHtml(equipe || "")}</span>` : ""}
+          <span class="ev-type-big ${typeClass(type)}">${type || "Événement"}</span>
+        </div>
+        <div class="ev-meta">${lieu || ""}${(canManage && !sansPresence) ? (lieu ? " · " : "") + presentCount + " présents / " + absentCount + " absents" : ""}</div>
+        ${sansPresence ? `<div class="muted" style="margin-top:8px; font-size:11.5px;">👁️ Visible par tout le club — pas de pointage de présence pour cet événement.</div>` : ""}
       </div>
-      <div class="ev-meta">${lieu || ""}${(canManage && !sansPresence) ? (lieu ? " · " : "") + presentCount + " présents / " + absentCount + " absents" : ""}</div>
-      ${sansPresence ? `<div class="muted" style="margin-top:8px; font-size:11.5px;">👁️ Visible par tout le club — pas de pointage de présence pour cet événement.</div>` : ""}
       ${(!isPast && !hasRole("Bénévole") && !sansPresence) ? (
         compositionNonSelected(ev, presIdentity.nom)
           ? `<div class="composition-not-selected-badge">🔒 Non sélectionné</div>`
@@ -795,6 +824,99 @@ function renderEventCard(ev, canManage, isPast, showTeamBadge, staggerIndex) {
   </div>`;
 }
 
+// ===================== FICHE ÉVÉNEMENT (bottom sheet) =====================
+// Ouverte en tapant le corps d'une carte événement (Agenda ou "Prochain événement" de
+// l'Accueil) — voir window.__eventDetailId, câblé une seule fois côté core/render.js pour
+// fonctionner depuis n'importe quelle page. Les raccourcis Présent/Absent, le bouton
+// Composition et le bloc "cartes" (covoiturage/repas) restent directement sur la carte (voir
+// renderEventCard/renderNextEventCard) : la fiche ne fait que regrouper le détail (lieu, score,
+// décompte de présence...), pas remplacer le geste rapide. Porté depuis Clubly.
+function renderEventDetailSheet() {
+  const id = window.__eventDetailId;
+  if (!id) return "";
+  const ev = evenements.find(e => e[0] === id);
+  if (!ev) return "";
+  const [, date, heure, type, titre, lieu, equipe, score, sansPresence] = ev;
+  const displayTitre = typeClass(type) === "match" ? formatMatchDisplay(titre, lieu).label : (titre || "Sans titre");
+  const canManage = hasRole("Coach") || hasRole("Admin") || (hasRole("Salarié") && !hasRole("Joueur"));
+  const presIdentity = myPresenceIdentity();
+  const val = presenceEvenements[`${id}_${presIdentity.nom}`];
+  const isPast = eventDateObj(ev) < new Date();
+
+  let presentCount = 0, absentCount = 0;
+  const allNames = [...PLAYERS, "Coach", "Admin", "Bénévole"];
+  allNames.forEach(n => {
+    const v = presenceEvenements[`${id}_${n}`];
+    if (v === "Oui") presentCount++;
+    else if (v === "Non") absentCount++;
+  });
+
+  let html = `<div class="sheet-overlay open" data-close-sheet="eventDetailId">
+    <div class="sheet-scrim" data-close-sheet="eventDetailId"></div>
+    <div class="sheet">
+      <div class="sheet-close" data-close-sheet="eventDetailId">✕</div>
+      <div class="sheet-grab"></div>
+      <div class="sheet-hero">
+        <div class="sheet-hero-eyebrow">${escapeHtml(type || "Événement")}${equipe && equipe !== "Toutes" ? " · " + escapeHtml(equipe) : ""}</div>
+        <h2>${escapeHtml(displayTitre)}</h2>
+        <p>${formatEventDateFr(ev)}${heure ? " · " + formatHeure(ev) : ""}</p>
+      </div>
+      <div class="sheet-body">`;
+
+  if (lieu) {
+    html += `<div class="sheet-row">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+      <div><b>${escapeHtml(lieu)}</b><span>${typeClass(type) === "match" ? (isHomeMatch(lieu) ? "Match à domicile" : "Match à l'extérieur") : "Lieu du rendez-vous"}</span></div>
+    </div>`;
+  }
+
+  if (typeClass(type) === "match" && isPast && score) {
+    html += `<div class="sheet-row">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2l2.7 6.6L21 9.3l-5 4.6L17.5 21 12 17.3 6.5 21 8 13.9l-5-4.6 6.3-0.7z"/></svg></div>
+      <div><b>Score final : ${escapeHtml(score)}</b><span>Match terminé</span></div>
+    </div>`;
+  }
+
+  if (sansPresence) {
+    html += `<div class="sheet-row">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div><b>Visible par tout le club</b><span>Pas de pointage de présence pour cet événement</span></div>
+    </div>`;
+  } else if (canManage) {
+    html += `<div class="sheet-row">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <div><b>${presentCount} présent${presentCount > 1 ? "s" : ""} · ${absentCount} absent${absentCount > 1 ? "s" : ""}</b><span>Réponses reçues</span></div>
+    </div>`;
+  } else if (!hasRole("Bénévole")) {
+    const statusLabel = val === "Oui" ? "✅ Présent" : val === "Non" ? "❌ Absent" : "⏳ Pas encore répondu";
+    html += `<div class="sheet-row">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <div><b>${statusLabel}</b><span>Ta présence pour cet événement</span></div>
+    </div>`;
+  }
+
+  const compoButtons = renderCompositionCardButtons(ev);
+  if (compoButtons) {
+    html += `<div class="sheet-row">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></div>
+      <div style="flex:1;"><b>Composition</b><span>${compositionIsPublished(id) ? "Publiée" : "Pas encore publiée"}</span></div>
+    </div>
+    <div style="padding-left:43px; margin-top:-4px;">${compoButtons}</div>`;
+  }
+
+  if (!isPast && !hasRole("Bénévole") && !sansPresence && presIdentity.editable && !compositionNonSelected(ev, presIdentity.nom)) {
+    html += `<div class="row-flex" style="margin-top:8px;">
+      <button class="sheet-cta ${val === 'Oui' ? '' : 'secondary'}" style="flex:1;" data-event-presence="${id}" data-event-val="1">Présent</button>
+      <button class="sheet-cta secondary" style="flex:1; ${val === 'Non' ? 'background:rgba(255,90,90,0.16); border-color:rgba(255,90,90,0.4); color:#ff8a8a;' : ''}" data-event-presence="${id}" data-event-val="0">Absent</button>
+    </div>`;
+  }
+
+  html += `</div>
+    </div>
+  </div>`;
+  return html;
+}
+
 // ===================== ACTIONS API =====================
 
 async function addEvenementApi(date, heure, type, titre, lieu, equipe, foodtruckNom, sansPresence) {
@@ -804,7 +926,7 @@ async function addEvenementApi(date, heure, type, titre, lieu, equipe, foodtruck
   const finalEquipe = equipe || primaryEquipe();
   const tempId = "temp_" + Date.now();
   evenements.push([tempId, date, heure, type, titre, lieu, finalEquipe, "", sansPresence ? "1" : ""]);
-  showAddEvent = false;
+  window.__showAddEvent = false;
   render();
   try {
     const params = new URLSearchParams({ action: "addEvenement", date, heure, type, titre, lieu, equipe: finalEquipe, authNom: session.nom, authCode: session.code });
@@ -870,6 +992,14 @@ async function generateSeasonTrainingsApi(equipe, startMardi, heureMardi, lieuMa
 }
 
 function attachAgendaEvents() {
+  document.querySelectorAll("[data-open-event-detail]").forEach(el => {
+    el.onclick = () => {
+      vibrate();
+      window.__eventDetailId = el.dataset.openEventDetail;
+      render();
+    };
+  });
+
   document.querySelectorAll("[data-event-presence]").forEach(btn => {
     btn.onclick = (e) => {
       vibrate();
@@ -958,7 +1088,8 @@ function attachAgendaEvents() {
 
   const toggleAddEvent = document.getElementById("toggle-add-event");
   if (toggleAddEvent) toggleAddEvent.onclick = () => {
-    showAddEvent = !showAddEvent;
+    vibrate();
+    window.__showAddEvent = true;
     window.__addEventType = null;
     render();
   };
