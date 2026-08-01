@@ -2,9 +2,10 @@
 // GESTION DES MATCHS — covoiturage (extérieur), goûter d'après match
 // (domicile), disponibilité table de marque (domicile + extérieur) et
 // suivi des maillots (qui les prend à laver, domicile + extérieur).
-// Une sous-section à la fois (window.__gestionMatchsSection), même
-// sélecteur d'équipe que le reste (feuilles Covoiturage/Gouter/
-// TableMarque/Maillots côté backend).
+// Une sous-section à la fois (window.__gestionMatchsSection), rendue en
+// grille de chips (.gm-section-grid), même sélecteur d'équipe que le
+// reste (feuilles Covoiturage/Gouter/TableMarque/Maillots côté
+// backend).
 // ===================================================================
 
 const GESTION_MATCHS_SECTIONS = [
@@ -33,9 +34,6 @@ function gestionMatchsSectionsForRole() {
   );
 }
 
-// Nombre de sections affichées directement (les plus utilisées) avant de basculer les
-// suivantes dans le menu "⋮" — sur mobile, plus que ça fait déborder/couper les mots.
-const GESTION_MATCHS_VISIBLE_COUNT = 3;
 const GESTION_MATCHS_USAGE_KEY = "ashs-gestion-matchs-usage";
 
 // Fréquence d'usage par section, propre à cet appareil (localStorage) — pas de notion de
@@ -142,13 +140,75 @@ function gestionMatchsUpcoming(activeTeam, homeFilter) {
   }).sort((a, b) => eventDateObj(a) - eventDateObj(b));
 }
 
-function matchCardHeader(ev, badges) {
-  const [, , , , titre, lieu] = ev;
+// section identifie quelle liste ouvrir dans la fiche (voir renderGestionMatchsDetailSheet) au
+// tap sur l'en-tête — le raccourci personnel (cp-edit-box, juste en dessous) reste lui toujours
+// directement sur la carte, jamais caché dans la fiche. Porté depuis Clubly.
+function matchCardHeader(ev, badges, section) {
+  const [id, , , , titre, lieu] = ev;
   const d = eventDateObj(ev);
   const dateLabel = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }).replace(".", "").toUpperCase();
-  return `<div class="cp-match-head">
+  return `<div class="cp-match-head sheet-open-zone" data-open-gm-detail="${section}|||${escapeHtml(id)}">
     <div><div class="cp-match-title">${escapeHtml(titre || "Match")}</div><div class="cp-match-sub">${dateLabel} · ${formatHeure(ev) || ""} · ${escapeHtml(lieu || "")}</div></div>
     <div style="display:flex; gap:6px;">${badges}</div>
+  </div>`;
+}
+
+// Fiche (bottom sheet) listant qui fait quoi pour un match, sur l'une des 4 sections
+// Covoiturage/Goûter/Table de marque/Maillots — ouverte au tap sur l'en-tête d'une carte.
+// Porté depuis Clubly.
+function renderGestionMatchsDetailSheet() {
+  const ctx = window.__gmDetailFor;
+  if (!ctx) return "";
+  const [section, matchId] = ctx.split("|||");
+  const ev = evenements.find(e => e[0] === matchId);
+  if (!ev) return "";
+  const [, , , , titre, lieu] = ev;
+  const displayTitre = typeClass(ev[3]) === "match" ? formatMatchDisplay(titre, lieu).label : (titre || "Événement");
+
+  const emptyRow = `<div class="cp-empty">Personne pour l'instant</div>`;
+  const personRow = (nom, extra) => `<div class="cp-row"><span>${escapeHtml(nom)}</span>${extra ? `<span class="places">${escapeHtml(extra)}</span>` : ""}</div>`;
+
+  let sectionLabel = "", bodyHtml = "";
+  if (section === "covoiturage") {
+    sectionLabel = "Covoiturage";
+    const entries = covoiturage.filter(r => r[0] === matchId);
+    const drivers = entries.filter(r => r[2] === "Oui");
+    const needers = entries.filter(r => r[4] === "Oui");
+    bodyHtml = `<div class="cp-col-h driver">🚗 Conducteurs (${drivers.length})</div>
+      ${drivers.length === 0 ? emptyRow : drivers.map(r => personRow(r[1], (r[3] || "?") + " places")).join("")}
+      <div class="cp-col-h need" style="margin-top:12px;">🙋 Cherchent une place (${needers.length})</div>
+      ${needers.length === 0 ? emptyRow : needers.map(r => personRow(r[1])).join("")}`;
+  } else if (section === "gouter") {
+    sectionLabel = "Goûter";
+    const entries = gouter.filter(r => r[0] === matchId);
+    bodyHtml = `<div class="cp-col-h" style="color:var(--accent2);">🍪 Apportent quelque chose (${entries.length})</div>
+      ${entries.length === 0 ? emptyRow : entries.map(r => personRow(r[1], r[2])).join("")}`;
+  } else if (section === "tablemarque") {
+    sectionLabel = "Table de marque";
+    const entries = tableMarque.filter(r => r[0] === matchId);
+    bodyHtml = `<div class="cp-col-h driver">📋 Disponibles (${entries.length})</div>
+      ${entries.length === 0 ? emptyRow : entries.map(r => personRow(r[1])).join("")}`;
+  } else if (section === "maillots") {
+    sectionLabel = "Maillots";
+    const entries = maillots.filter(r => r[0] === matchId && r[2] === "Oui");
+    bodyHtml = `<div class="cp-col-h" style="color:var(--gold);">👕 Prennent les maillots (${entries.length})</div>
+      ${entries.length === 0 ? emptyRow : entries.map(r => personRow(r[1])).join("")}`;
+  } else {
+    return "";
+  }
+
+  return `<div class="sheet-overlay open" data-close-sheet="gmDetailFor">
+    <div class="sheet-scrim" data-close-sheet="gmDetailFor"></div>
+    <div class="sheet">
+      <div class="sheet-close" data-close-sheet="gmDetailFor">✕</div>
+      <div class="sheet-grab"></div>
+      <div class="sheet-hero">
+        <div class="sheet-hero-eyebrow">${escapeHtml(sectionLabel)}</div>
+        <h2>${escapeHtml(displayTitre)}</h2>
+        <p>${formatEventDateFr(ev)}${lieu ? " · " + escapeHtml(lieu) : ""}</p>
+      </div>
+      <div class="sheet-body">${bodyHtml}</div>
+    </div>
   </div>`;
 }
 
@@ -166,16 +226,7 @@ function renderCovoiturageSection(activeTeam) {
     html += `<div class="cp-match-card">` + matchCardHeader(ev, `
       <div class="cp-summary-badge"><div class="num" style="color:#33d17a;">${totalPlaces}</div><div class="lbl">Places</div></div>
       <div class="cp-summary-badge"><div class="num" style="color:#ffb43c;">${needers.length}</div><div class="lbl">Demandes</div></div>
-    `) + `<div class="cp-cols">
-        <div class="cp-col">
-          <div class="cp-col-h driver">🚗 Conducteurs</div>
-          ${drivers.length === 0 ? `<div class="cp-empty">Personne pour l'instant</div>` : drivers.map(r => `<div class="cp-row"><span>${escapeHtml(r[1])}</span><span class="places">${escapeHtml(r[3] || "?")} pl.</span></div>`).join("")}
-        </div>
-        <div class="cp-col">
-          <div class="cp-col-h need">🙋 Cherchent une place</div>
-          ${needers.length === 0 ? `<div class="cp-empty">Personne pour l'instant</div>` : needers.map(r => `<div class="cp-row"><span>${escapeHtml(r[1])}</span></div>`).join("")}
-        </div>
-      </div>`;
+    `, "covoiturage");
 
     if (identities.length === 0) {
       html += `<div class="muted" style="font-size:9.5px; margin-top:10px; text-align:center;">Seul ton parent peut modifier cette page pour toi.</div>`;
@@ -212,11 +263,8 @@ function renderGouterSection(activeTeam) {
     const id = ev[0];
     const entries = gouter.filter(r => r[0] === id);
     html += `<div class="cp-match-card">` + matchCardHeader(ev, `
-      <div class="cp-summary-badge"><div class="num" style="color:#c98cf0;">${entries.length}</div><div class="lbl">Inscrits</div></div>
-    `) + `<div class="cp-col">
-        <div class="cp-col-h" style="color:#c98cf0;">🍪 Apportent quelque chose</div>
-        ${entries.length === 0 ? `<div class="cp-empty">Personne pour l'instant</div>` : entries.map(r => `<div class="cp-row"><span>${escapeHtml(r[1])}</span><span class="places">${escapeHtml(r[2] || "")}</span></div>`).join("")}
-      </div>`;
+      <div class="cp-summary-badge"><div class="num" style="color:var(--accent2);">${entries.length}</div><div class="lbl">Inscrits</div></div>
+    `, "gouter");
 
     if (identities.length === 0) {
       html += `<div class="muted" style="font-size:9.5px; margin-top:10px; text-align:center;">Seul ton parent peut modifier cette page pour toi.</div>`;
@@ -245,10 +293,7 @@ function renderTableMarqueSection(activeTeam) {
     const entries = tableMarque.filter(r => r[0] === id);
     html += `<div class="cp-match-card">` + matchCardHeader(ev, `
       <div class="cp-summary-badge"><div class="num" style="color:#33d17a;">${entries.length}</div><div class="lbl">Disponibles</div></div>
-    `) + `<div class="cp-col">
-        <div class="cp-col-h driver">📋 Disponibles pour la table</div>
-        ${entries.length === 0 ? `<div class="cp-empty">Personne pour l'instant</div>` : entries.map(r => `<div class="cp-row"><span>${escapeHtml(r[1])}</span></div>`).join("")}
-      </div>`;
+    `, "tablemarque");
 
     if (identities.length === 0) {
       html += `<div class="muted" style="font-size:9.5px; margin-top:10px; text-align:center;">Seul ton parent peut modifier cette page pour toi.</div>`;
@@ -284,11 +329,8 @@ function renderMaillotsSection(activeTeam) {
     const id = ev[0];
     const entries = maillots.filter(r => r[0] === id && r[2] === "Oui");
     html += `<div class="cp-match-card">` + matchCardHeader(ev, `
-      <div class="cp-summary-badge"><div class="num" style="color:#E8B84B;">${entries.length}</div><div class="lbl">Pris</div></div>
-    `) + `<div class="cp-col">
-        <div class="cp-col-h" style="color:#E8B84B;">👕 Prennent les maillots</div>
-        ${entries.length === 0 ? `<div class="cp-empty">Personne pour l'instant</div>` : entries.map(r => `<div class="cp-row"><span>${escapeHtml(r[1])}</span></div>`).join("")}
-      </div>`;
+      <div class="cp-summary-badge"><div class="num" style="color:var(--gold);">${entries.length}</div><div class="lbl">Pris</div></div>
+    `, "maillots");
 
     if (identities.length === 0) {
       html += `<div class="muted" style="font-size:9.5px; margin-top:10px; text-align:center;">Seul ton parent peut modifier cette page pour toi.</div>`;
@@ -365,26 +407,7 @@ function renderFoodtruckSection() {
   const matches = foodtruckHomeMatches();
   const entries = foodtruckEntriesFor();
 
-  let html = `<button class="btn add-btn-primary" id="toggle-add-foodtruck">${window.__showAddFoodtruck ? "− Fermer" : "+ Ajouter un passage foodtruck"}</button>`;
-  if (window.__showAddFoodtruck) {
-    if (matches.length === 0) {
-      html += `<div class="card muted">Aucun match à domicile enregistré pour l'instant.</div>`;
-    } else {
-      html += `<div class="add-form">
-        <label class="field-label">Foodtruck</label>
-        ${renderFoodtruckNomSelect("foodtruck", "")}
-        <label class="field-label">Match associé</label>
-        <select id="foodtruck-event">
-          ${matches.map(ev => `<option value="${escapeHtml(ev[0])}">${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(eventEquipe(ev))} — ${escapeHtml(formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match")}</option>`).join("")}
-        </select>
-        <label class="field-label">Menu</label>
-        ${renderMenuImagePicker("foodtruck", "")}
-        <label class="field-label">Notes (optionnel)</label>
-        <input id="foodtruck-notes" type="text" placeholder="Ex: bien venu, prévoir 2 emplacements..." />
-        <button class="btn" id="foodtruck-add" style="margin-top:6px;">Enregistrer</button>
-      </div>`;
-    }
-  }
+  let html = `<button class="btn add-btn-primary" id="toggle-add-foodtruck">+ Ajouter un passage foodtruck</button>`;
 
   html += renderFoodtruckCatalogCard();
 
@@ -432,7 +455,44 @@ function renderFoodtruckSection() {
     html += `</div>`;
   }
 
+  html += renderAddFoodtruckSheet(matches);
+
   return html;
+}
+
+// ===================== FICHE AJOUT FOODTRUCK (bottom sheet) =====================
+// Porté depuis Clubly : l'ancien formulaire "+ Ajouter un passage foodtruck" inline (add-form)
+// devient une fiche qui glisse depuis le bas — voir window.__showAddFoodtruck, câblé sur
+// #toggle-add-foodtruck, fermée via data-close-sheet="showAddFoodtruck".
+function renderAddFoodtruckSheet(matches) {
+  if (!window.__showAddFoodtruck) return "";
+  const bodyHtml = matches.length === 0
+    ? `<div class="muted">Aucun match à domicile enregistré pour l'instant.</div>`
+    : `
+      <label class="field-label">Foodtruck</label>
+      ${renderFoodtruckNomSelect("foodtruck", "")}
+      <label class="field-label">Match associé</label>
+      <select id="foodtruck-event">
+        ${matches.map(ev => `<option value="${escapeHtml(ev[0])}">${eventDateObj(ev).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })} — ${escapeHtml(eventEquipe(ev))} — ${escapeHtml(formatMatchDisplay(ev[4], ev[5]).label || ev[4] || "Match")}</option>`).join("")}
+      </select>
+      <label class="field-label">Menu</label>
+      ${renderMenuImagePicker("foodtruck", "")}
+      <label class="field-label">Notes (optionnel)</label>
+      <input id="foodtruck-notes" type="text" placeholder="Ex: bien venu, prévoir 2 emplacements..." />
+      <button class="btn" id="foodtruck-add" style="margin-top:12px;">Enregistrer</button>`;
+
+  return `<div class="sheet-overlay open" data-close-sheet="showAddFoodtruck">
+    <div class="sheet-scrim" data-close-sheet="showAddFoodtruck"></div>
+    <div class="sheet">
+      <div class="sheet-close" data-close-sheet="showAddFoodtruck">✕</div>
+      <div class="sheet-grab"></div>
+      <div class="sheet-hero">
+        <div class="sheet-hero-eyebrow">Gestion des matchs</div>
+        <h2>Ajouter un passage foodtruck</h2>
+      </div>
+      <div class="sheet-body">${bodyHtml}</div>
+    </div>
+  </div>`;
 }
 
 function renderGestionMatchsPage() {
@@ -444,24 +504,14 @@ function renderGestionMatchsPage() {
   }
   const activeTeam = (window.__covoitTeamView && teams.includes(window.__covoitTeamView)) ? window.__covoitTeamView : teams[0];
   const sortedSections = gestionMatchsSectionsSorted();
-  const section = sortedSections.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : "covoiturage";
+  const section = sortedSections.some(s => s.id === window.__gestionMatchsSection) ? window.__gestionMatchsSection : (sortedSections[0] ? sortedSections[0].id : "covoiturage");
   const needsTeam = section !== "foodtruck" && section !== "restaurants"; // ni les foodtrucks ni le catalogue restaurants ne concernent une équipe en particulier
 
-  const visibleSections = sortedSections.slice(0, GESTION_MATCHS_VISIBLE_COUNT);
-  const overflowSections = sortedSections.slice(GESTION_MATCHS_VISIBLE_COUNT);
-  const activeInOverflow = overflowSections.some(s => s.id === section);
-
   let html = `<div class="page-title">Gestion des matchs</div><div class="page-sub">Covoiturage, goûter, table de marque et maillots${needsTeam ? " — équipe " + escapeHtml(activeTeam) : ""}</div>`;
-  html += `<div class="team-switch-row">
-    ${visibleSections.map(s => `<button type="button" class="team-switch-btn ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}
-    ${overflowSections.length > 0 ? `<div class="gm-extra-wrap">
-      <button type="button" class="team-switch-btn gm-extra-trigger ${activeInOverflow ? 'active' : ''}" id="gm-extra-trigger">⋮</button>
-      ${window.__gestionMatchsExtraOpen ? `<div class="avatar-menu gm-extra-menu">
-        ${overflowSections.map(s => `<div class="avatar-menu-item ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</div>`).join("")}
-      </div>` : ""}
-    </div>` : ""}
-  </div>`;
   if (needsTeam) html += renderTeamSwitcher(teams, activeTeam, "covoit-team");
+  html += `<div class="gm-section-grid">
+    ${sortedSections.map(s => `<button type="button" class="gm-section-chip ${section === s.id ? 'active' : ''}" data-gestion-matchs-section="${s.id}">${s.label}</button>`).join("")}
+  </div>`;
 
   if (section === "covoiturage") html += renderCovoiturageSection(activeTeam);
   else if (section === "gouter") html += renderGouterSection(activeTeam);
@@ -469,6 +519,8 @@ function renderGestionMatchsPage() {
   else if (section === "maillots") html += renderMaillotsSection(activeTeam);
   else if (section === "foodtruck" && canManageFoodtrucks()) html += renderFoodtruckSection();
   else if (section === "restaurants" && canManageRestaurants()) html += renderRestaurantsSection();
+
+  if (window.__gmDetailFor) html += renderGestionMatchsDetailSheet();
 
   html += renderMenuImagePopup();
 
@@ -709,24 +761,23 @@ function renderCovoiturageHistoryCard(nom) {
 }
 
 function attachGestionMatchsEvents() {
+  document.querySelectorAll("[data-open-gm-detail]").forEach(el => {
+    el.onclick = () => {
+      vibrate();
+      window.__gmDetailFor = el.dataset.openGmDetail;
+      render();
+    };
+  });
+
   document.querySelectorAll("[data-gestion-matchs-section]").forEach(el => {
     el.onclick = () => {
       vibrate();
       const id = el.dataset.gestionMatchsSection;
       window.__gestionMatchsSection = id;
       bumpGestionMatchsUsage(id);
-      window.__gestionMatchsExtraOpen = false;
       render();
     };
   });
-
-  const gmExtraTrigger = document.getElementById("gm-extra-trigger");
-  if (gmExtraTrigger) gmExtraTrigger.onclick = (e) => {
-    e.stopPropagation();
-    vibrate();
-    window.__gestionMatchsExtraOpen = !window.__gestionMatchsExtraOpen;
-    render();
-  };
 
   document.querySelectorAll("[data-covoit-team]").forEach(el => {
     el.onclick = () => { vibrate(); window.__covoitTeamView = el.dataset.covoitTeam; render(); };
@@ -794,7 +845,7 @@ function attachGestionMatchsEvents() {
   const toggleAddFoodtruck = document.getElementById("toggle-add-foodtruck");
   if (toggleAddFoodtruck) toggleAddFoodtruck.onclick = () => {
     vibrate();
-    window.__showAddFoodtruck = !window.__showAddFoodtruck;
+    window.__showAddFoodtruck = true;
     clearPendingMenuImage("foodtruck");
     render();
   };
