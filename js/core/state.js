@@ -33,6 +33,7 @@ let restaurants = []; // [[nom], ...] (+ header row) — catalogue des restauran
 let restaurantsMenus = []; // [[id, restaurant, plat, prix], ...] (+ header row)
 let compositions = []; // [[matchId, nom, zone, libreX, libreY], ...] — zone = poste fixe (GB/AiG/.../Banc5) ou "Libre"
 let compositionsMeta = []; // [[matchId, publie], ...] — publie = "1" une fois visible aux joueurs/parents
+let selections = []; // [[eventId, nom, selectionne], ...] — qui est retenu pour un match, réservé Coach/Admin (feuille "Selections")
 
 let session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
 if (session && !session.code) { session = null; localStorage.removeItem(SESSION_KEY); }
@@ -111,7 +112,6 @@ let loginCodeLength = 4; // 4 chiffres par défaut, 6 pour un compte Admin (voir
 let loginSelectedNom = localStorage.getItem(LAST_USER_KEY) || "";
 let loginPrefilledFromMemory = !!loginSelectedNom;
 let loginNoms = null; // [{nom, role}, ...] chargé avant connexion, remplace la liste figée PLAYERS pour le menu
-let showAddEvent = false;
 
 // ---------- Données ----------
 
@@ -165,7 +165,7 @@ function parsePresenceEvenements(rows) {
 // window.__compositionDragActive dans composition.js pour le même principe appliqué au
 // glisser-déposer de la composition d'équipe (bloquer seulement le geste, pas toute la page).
 function isFormOpen() {
-  return !!window.__compositionDragActive || !!showAddEvent || !!window.__editingEvenementId || !!window.__editingPaiementId || !!window.__showAddPaiement || !!window.__showChangeCode || !!window.__showGenerateTrainings || !!window.__profilPosteAdding || (window.__profilPosteEditIndex !== null && window.__profilPosteEditIndex !== undefined) || !!window.__showAddActualite || !!window.__cnEditPlayer || !!window.__showSalariesAdd || !!window.__salariesPreviewFile || !!window.__salariesUploading || !!window.__profilEmailEditing || currentPage === "support";
+  return !!window.__compositionDragActive || !!window.__showAddEvent || !!window.__editingEvenementId || !!window.__editingPaiementId || !!window.__showAddPaiement || !!window.__showChangeCode || !!window.__showGenerateTrainings || !!window.__profilPosteAdding || (window.__profilPosteEditIndex !== null && window.__profilPosteEditIndex !== undefined) || !!window.__showAddActualite || !!window.__cnEditPlayer || !!window.__showSalariesAdd || !!window.__salariesPreviewFile || !!window.__salariesUploading || !!window.__profilEmailEditing || currentPage === "support";
 }
 
 // Détection générique (pas de liste à maintenir à la main comme isFormOpen ci-dessus) : si le

@@ -47,6 +47,8 @@ function api_getAll(ss, e) {
   const restaurants = restaurantsSheet ? restaurantsSheet.getDataRange().getValues() : [];
   const restaurantsMenusSheet = ss.getSheetByName("RestaurantsMenus");
   const restaurantsMenus = restaurantsMenusSheet ? restaurantsMenusSheet.getDataRange().getValues() : [];
+  const selectionsSheet = ss.getSheetByName("Selections");
+  const selections = selectionsSheet ? selectionsSheet.getDataRange().getValues() : [];
 
-  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog, restaurants, restaurantsMenus });
+  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog, restaurants, restaurantsMenus, selections });
 }

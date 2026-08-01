@@ -29,6 +29,7 @@ function setup() {
   setupRestaurants();
   setupSupport();
   setupCompositions();
+  setupSelections();
   ensureGridAction("Non renseigné avant dimanche soir", 1); // lié à Notifications.gs (checkDisponibilitesDimanche)
 }
 
@@ -218,7 +219,7 @@ function addRealSF1AndU17MRoster2026() {
 
 // ===================== SCISSION SF1 -> SF1 + SF2 (saison 2026-2027) =====================
 // À exécuter UNE FOIS depuis l'éditeur (menu déroulant > migrateSF1ToSF1AndSF2 > Exécuter),
-// après avoir redéployé le code mis à jour (TEAMS inclut désormais "SF2" et "Prépa physique").
+// après avoir redéployé le code mis à jour (TEAMS inclut désormais "SF2").
 // Change l'équipe de chaque paire role:équipe listée ci-dessous (ex: "Joueur:SF1" ->
 // "Joueur:SF2") dans la feuille Comptes, sans toucher aux autres rôles éventuels de la même
 // personne (ex: Perrine S. reste aussi Coach:U17M1,Coach:U17M2). Idempotent : si une personne a
@@ -235,7 +236,8 @@ function migrateSF1ToSF1AndSF2() {
   // [nom, role, équipe actuelle, nouvelle équipe]
   const moves = [
     // Coachs
-    ["Benjamin T.", "Coach", "SF1", "Prépa physique"],
+    // Benjamin T. reste Coach:SF1 (anciennement déplacé vers "Prépa physique", retirée depuis
+    // que ce n'est plus une équipe — voir TEAMS dans js/config/club-config.js).
     ["Damba C.", "Coach", "SF1", "SF2"],
     ["Matteo S.", "Coach", "SF1", "SF2"],
     // Geneviève M. et Simon B. restent Coach:SF1, pas de changement.

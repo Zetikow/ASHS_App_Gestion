@@ -58,7 +58,7 @@ const PAYPAL_ME_USERNAME = "";
 // (voir la page Paiement, section dédiée). Vide "" tant que non créé.
 const PAYPAL_ME_USERNAME_VIE_EQUIPE = "";
 
-const TEAMS = ["SF1", "SF2", "U17M1", "U17M2", "Prépa physique"];
+const TEAMS = ["SF1", "SF2", "U17M1", "U17M2"];
 // Les deux équipes U17 s'entraînent ensemble (entraînements communs, effectif combiné pour la
 // composition d'équipe, suivi des brûlages) — voir eventVisibleForTeam (agenda.js) et
 // compositionRoster (composition.js).
@@ -70,6 +70,10 @@ const SF_TEAMS = ["SF1", "SF2"];
 // Nombre max de matchs qu'un joueur U17M2 peut jouer avec l'U17M1 avant de ne plus pouvoir
 // redescendre en M2 (règle fédérale de "brûlage") — voir bruleMatchesFor (composition.js).
 const BRULAGE_MAX_MATCHES = 10;
+// Nombre max de joueuses/joueurs retenus dans la Sélection d'un match (page Présence, sous-vue
+// "Sélection", réservée Coach/Admin) — voir renderSelectionEventCard/renderPresenceSelectionSheet
+// (presence.js) et la feuille "Selections" (apps-script/Selections.gs).
+const SELECTION_MAX_PLAYERS = 12;
 
 // Adresse mail de relance visible sur Profil/Accueil pour permettre aux joueurs de la renseigner.
 const EMAIL_REMINDER_UI_VISIBLE = true;

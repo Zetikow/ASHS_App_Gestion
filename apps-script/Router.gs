@@ -61,6 +61,7 @@ const API_HANDLERS = {
   addRestaurantMenuItem: api_addRestaurantMenuItem,         // Restaurants.gs
   deleteRestaurantMenuItem: api_deleteRestaurantMenuItem,   // Restaurants.gs
   setCarteRestaurant: api_setCarteRestaurant,               // Cartes.gs
+  setSelection: api_setSelection,                           // Selections.gs
 };
 
 // Toute action passe par ce try/catch : sans lui, une erreur non prévue dans un handler (ex:
