@@ -59,3 +59,26 @@ const CLUB_SUPPORT_EMAIL = "";
 
 // Nom du club utilisé comme expéditeur des mails automatiques (rappels de présence, etc.)
 const CLUB_NAME = "AS Hoenheim Sports";
+
+// Reconnaît le nom complet/court du club dans un titre de match (ex: "ASHS vs Illkirch") pour
+// en extraire l'adversaire — utilisé côté serveur pour construire le texte des notifications
+// push (compo publiée, sélection, match demain...). DOIT rester identique à
+// CLUB_FULL_NAME_PATTERN/CLUB_SHORT_NAME_PATTERN dans js/config/club-config.js (source de
+// vérité pour l'affichage côté frontend, voir extractOpponent() dans js/modules/agenda.js).
+const CLUB_FULL_NAME_PATTERN = /a\.?s\.?\s*ho[eë]nheim\s*sports/gi;
+const CLUB_SHORT_NAME_PATTERN = /ashs/gi;
+function extractOpponentFromTitre(titre) {
+  let t = String(titre || "").replace(CLUB_FULL_NAME_PATTERN, "").replace(CLUB_SHORT_NAME_PATTERN, "");
+  t = t.replace(/\bvs\b|\bcontre\b/gi, " ");
+  t = t.replace(/[-–—]/g, " ");
+  return t.trim().replace(/\s+/g, " ");
+}
+
+// Convertit une date stockée au format texte "YYYY-MM-DD" (voir Evenements.gs) en "DD/MM/YYYY"
+// pour l'affichage dans les notifications — renvoie la valeur telle quelle si le format ne
+// correspond pas (ne casse jamais l'envoi d'une notification pour un souci de format).
+function formatDateFr(dateStr) {
+  const s = String(dateStr || "");
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : s;
+}
