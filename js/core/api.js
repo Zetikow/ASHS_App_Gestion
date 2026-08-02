@@ -32,6 +32,8 @@ async function fetchAll() {
     compositions = (data.compositions || []).slice(1).filter(r => r[0]);
     compositionsMeta = (data.compositionsMeta || []).slice(1).filter(r => r[0]);
     selections = (data.selections || []).slice(1).filter(r => r[0]);
+    selectionsMeta = (data.selectionsMeta || []).slice(1).filter(r => r[0]);
+    benevoles = (data.benevoles || []).slice(1).filter(r => r[0]);
     foodtrucks = (data.foodtrucks || []).slice(1).filter(r => r[0]);
     foodtrucksCatalog = (data.foodtrucksCatalog || []).slice(1).filter(r => r[0]);
     restaurants = (data.restaurants || []).slice(1).filter(r => r[0]);

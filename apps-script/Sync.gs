@@ -51,6 +51,10 @@ function api_getAll(ss, e) {
   const restaurantsMenus = restaurantsMenusSheet ? restaurantsMenusSheet.getDataRange().getValues() : [];
   const selectionsSheet = ss.getSheetByName("Selections");
   const selections = selectionsSheet ? selectionsSheet.getDataRange().getValues() : [];
+  const selectionsMetaSheet = ss.getSheetByName("SelectionsMeta");
+  const selectionsMeta = selectionsMetaSheet ? selectionsMetaSheet.getDataRange().getValues() : [];
+  const benevolesSheet = ss.getSheetByName("Benevoles");
+  const benevoles = benevolesSheet ? benevolesSheet.getDataRange().getValues() : [];
 
-  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, gouterOptions, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog, restaurants, restaurantsMenus, selections });
+  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, gouterOptions, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog, restaurants, restaurantsMenus, selections, selectionsMeta, benevoles });
 }

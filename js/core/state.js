@@ -35,6 +35,8 @@ let restaurantsMenus = []; // [[id, restaurant, plat, prix], ...] (+ header row)
 let compositions = []; // [[matchId, nom, zone, libreX, libreY], ...] — zone = poste fixe (GB/AiG/.../Banc5) ou "Libre"
 let compositionsMeta = []; // [[matchId, publie], ...] — publie = "1" une fois visible aux joueurs/parents
 let selections = []; // [[eventId, nom, selectionne], ...] — qui est retenu pour un match, réservé Coach/Admin (feuille "Selections")
+let selectionsMeta = []; // [[eventId, publie], ...] — publie = "1" une fois la sélection visible aux joueurs/parents
+let benevoles = []; // [[eventId, nom, present], ...] (+ header row) — qui s'est proposé bénévole pour un événement de type "Bénévole", club-entier
 
 let session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
 if (session && !session.code) { session = null; localStorage.removeItem(SESSION_KEY); }
@@ -228,6 +230,13 @@ function rosterForEquipe(equipe) {
     return [...set];
   }
   return comptes.slice(1).filter(c => rowHasRole(c, "Joueur") && rowEquipesForRole(c, "Joueur").indexOf(equipe) !== -1).map(c => c[0]);
+}
+
+// Même idiome que rosterForEquipe mais pour le rôle "Bénévole" — sert à lister tous les comptes
+// bénévoles du club, PEU IMPORTE leur équipe (les événements Bénévole sont club-entier, jamais
+// filtrés par équipe — voir renderBenevoleSection dans presence.js).
+function benevolesForClub() {
+  return comptes.slice(1).filter(c => rowHasRole(c, "Bénévole")).map(c => c[0]);
 }
 
 // Équipes qu'un compte peut consulter : toutes celles de ses rôles cumulés (ex: un joueur
