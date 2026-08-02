@@ -9,6 +9,51 @@ const ASSETS = [
   "./images/logo-watermark.png"
 ];
 
+// ===== Notifications push (Firebase Cloud Messaging) =====
+// Intégré ici plutôt que dans un fichier "firebase-messaging-sw.js" séparé : un seul service
+// worker peut contrôler la page à la fois, et celui-ci gère déjà le cache/offline. Même
+// firebaseConfig que config/firebase-config.js — un service worker ne peut pas importer les
+// fichiers JS de la page principale, doit être dupliqué ici si le projet Firebase change.
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
+
+// TODO : à remplacer une fois le projet Firebase ASHS créé (voir config/firebase-config.js pour le mode d'emploi).
+firebase.initializeApp({
+  apiKey: "TODO_A_REMPLIR",
+  authDomain: "TODO_A_REMPLIR",
+  projectId: "TODO_A_REMPLIR",
+  storageBucket: "TODO_A_REMPLIR",
+  messagingSenderId: "TODO_A_REMPLIR",
+  appId: "TODO_A_REMPLIR",
+});
+
+const messaging = firebase.messaging();
+
+// Notification reçue alors que l'appli est fermée ou en arrière-plan (celles reçues appli
+// ouverte au premier plan passent par messaging.onMessage() côté page, voir js/core/push.js).
+messaging.onBackgroundMessage((payload) => {
+  const title = (payload.notification && payload.notification.title) || "ASHS";
+  const options = {
+    body: (payload.notification && payload.notification.body) || "",
+    icon: "images/logo-watermark.png",
+    badge: "images/logo-watermark.png",
+  };
+  self.registration.showNotification(title, options);
+});
+
+// Clic sur une notification : ramène l'onglet déjà ouvert au premier plan, ou en ouvre un nouveau.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow("./");
+    })
+  );
+});
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
