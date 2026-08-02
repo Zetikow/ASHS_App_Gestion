@@ -33,6 +33,7 @@ const API_HANDLERS = {
   addCarte: api_addCarte,                                   // Cartes.gs
   deleteCarte: api_deleteCarte,                             // Cartes.gs
   setCarteTotal: api_setCarteTotal,                         // Cartes.gs
+  setCarteTitre: api_setCarteTitre,                         // Cartes.gs
   addCarteOption: api_addCarteOption,                       // Cartes.gs
   removeCarteOption: api_removeCarteOption,                 // Cartes.gs
   setCarteReponse: api_setCarteReponse,                     // Cartes.gs

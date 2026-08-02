@@ -610,6 +610,7 @@ body.login-mode .login-wrap { flex: 1; min-height: 0; }
 .carte-box.carte-apero .carte-icon { background: rgba(var(--accent-rgb),0.22); }
 .carte-title { flex: 1; font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.2px; }
 .carte-del { color: #ff6b6b; font-size: 12px; cursor: pointer; padding: 2px 5px; flex-shrink: 0; }
+.carte-edit { font-size: 12px; cursor: pointer; padding: 2px 5px; flex-shrink: 0; }
 .carte-sub-h { font-size: 10px; font-weight: 800; color: #e4e8f2; text-transform: uppercase; letter-spacing: 0.3px; margin: 7px 0 5px; }
 .carte-option { display: flex; align-items: center; justify-content: space-between; background: #1a1f30; border: 1px solid #2a3350; border-radius: 8px; padding: 7px 10px; margin-bottom: 5px; font-size: 11.5px; font-weight: 700; color: #e8e8ee; cursor: pointer; }
 .carte-option-count { font-size: 10px; font-weight: 800; color: #8a8f9e; flex-shrink: 0; }
