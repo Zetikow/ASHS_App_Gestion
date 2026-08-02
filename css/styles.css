@@ -585,7 +585,7 @@ body.login-mode .login-wrap { flex: 1; min-height: 0; }
 .carte-collapsed-text { flex: 1; min-width: 0; }
 .carte-collapsed-text .carte-title { margin-bottom: 1px; }
 .carte-summary { font-size: 10px; color: #8a8f9e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.carte-chevron { font-size: 10px; color: #8a8f9e; flex-shrink: 0; }
+.carte-chevron { font-size: 10px; color: #8a8f9e; flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid #232a3f; border-radius: 8px; }
 .carte-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; cursor: pointer; }
 .carte-icon { font-size: 14px; flex-shrink: 0; }
 .carte-title { flex: 1; font-size: 12px; font-weight: 800; color: #fff; }
