@@ -13,14 +13,13 @@
 // recrées le projet Firebase.
 // ===================================================================
 
-// TODO : à remplacer une fois le projet Firebase ASHS créé (voir config/firebase-config.js pour le mode d'emploi).
 const FIREBASE_CONFIG = {
-  apiKey: "TODO_A_REMPLIR",
-  authDomain: "TODO_A_REMPLIR",
-  projectId: "TODO_A_REMPLIR",
-  storageBucket: "TODO_A_REMPLIR",
-  messagingSenderId: "TODO_A_REMPLIR",
-  appId: "TODO_A_REMPLIR",
+  apiKey: "AIzaSyBPG7E0qx2UJYa11j58CFRRHb9pzeP9SCI",
+  authDomain: "appgestionashs.firebaseapp.com",
+  projectId: "appgestionashs",
+  storageBucket: "appgestionashs.firebasestorage.app",
+  messagingSenderId: "541355543848",
+  appId: "1:541355543848:web:bd2193de7e0f51bcd3d41d",
 };
 
-const FCM_VAPID_KEY = "TODO_A_REMPLIR";
+const FCM_VAPID_KEY = "BNZ4t3UHm90vgGIQmyIzG61ZZwBUIXv_VAoJo5yzj4MSZz6z3D0cZ-LFQHZCWv-xIFYaFnYY1_xgrPDtWkTqZP8";

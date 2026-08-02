@@ -1,7 +1,7 @@
 // IMPORTANT : incrémente ce numéro à chaque mise à jour déployée de l'appli.
 // Ça force le renouvellement du cache ET (via APP_VERSION dans index.html)
 // la déconnexion de tous les utilisateurs pour qu'ils rechargent la dernière version.
-const CACHE_NAME = "ashs-v2026-08-02-1";
+const CACHE_NAME = "ashs-v2026-08-02-2";
 const ASSETS = [
   "./manifest.json",
   "./images/logo.svg",
@@ -17,14 +17,13 @@ const ASSETS = [
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-// TODO : à remplacer une fois le projet Firebase ASHS créé (voir config/firebase-config.js pour le mode d'emploi).
 firebase.initializeApp({
-  apiKey: "TODO_A_REMPLIR",
-  authDomain: "TODO_A_REMPLIR",
-  projectId: "TODO_A_REMPLIR",
-  storageBucket: "TODO_A_REMPLIR",
-  messagingSenderId: "TODO_A_REMPLIR",
-  appId: "TODO_A_REMPLIR",
+  apiKey: "AIzaSyBPG7E0qx2UJYa11j58CFRRHb9pzeP9SCI",
+  authDomain: "appgestionashs.firebaseapp.com",
+  projectId: "appgestionashs",
+  storageBucket: "appgestionashs.firebasestorage.app",
+  messagingSenderId: "541355543848",
+  appId: "1:541355543848:web:bd2193de7e0f51bcd3d41d",
 });
 
 const messaging = firebase.messaging();
