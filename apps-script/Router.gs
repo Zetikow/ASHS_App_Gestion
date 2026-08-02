@@ -26,6 +26,8 @@ const API_HANDLERS = {
   replySupportMessage: api_replySupportMessage,             // Support.gs
   setCovoiturage: api_setCovoiturage,                       // Covoiturage.gs
   setGouter: api_setGouter,                                 // Gouter.gs
+  addGouterOption: api_addGouterOption,                     // Gouter.gs
+  removeGouterOption: api_removeGouterOption,               // Gouter.gs
   setTableMarque: api_setTableMarque,                       // TableMarque.gs
   setMaillots: api_setMaillots,                             // Maillots.gs
   addCarte: api_addCarte,                                   // Cartes.gs

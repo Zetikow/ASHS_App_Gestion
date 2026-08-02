@@ -24,6 +24,7 @@ async function fetchAll() {
     actualites = (data.actualites || []).slice(1).filter(r => r[0]);
     covoiturage = (data.covoiturage || []).slice(1).filter(r => r[0]);
     gouter = (data.gouter || []).slice(1).filter(r => r[0]);
+    gouterOptions = (data.gouterOptions || []).slice(1).filter(r => r[0]);
     tableMarque = (data.tableMarque || []).slice(1).filter(r => r[0]);
     maillots = (data.maillots || []).slice(1).filter(r => r[0]);
     cartes = (data.cartes || []).slice(1).filter(r => r[0]);

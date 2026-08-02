@@ -27,6 +27,8 @@ function api_getAll(ss, e) {
   const covoiturage = covoiturageSheet ? covoiturageSheet.getDataRange().getValues() : [];
   const gouterSheet = ss.getSheetByName("Gouter");
   const gouter = gouterSheet ? gouterSheet.getDataRange().getValues() : [];
+  const gouterOptionsSheet = ss.getSheetByName("GouterOptions");
+  const gouterOptions = gouterOptionsSheet ? gouterOptionsSheet.getDataRange().getValues() : [];
   const tableMarqueSheet = ss.getSheetByName("TableMarque");
   const tableMarque = tableMarqueSheet ? tableMarqueSheet.getDataRange().getValues() : [];
   const maillotsSheet = ss.getSheetByName("Maillots");
@@ -50,5 +52,5 @@ function api_getAll(ss, e) {
   const selectionsSheet = ss.getSheetByName("Selections");
   const selections = selectionsSheet ? selectionsSheet.getDataRange().getValues() : [];
 
-  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog, restaurants, restaurantsMenus, selections });
+  return jsonOut({ ok: true, grid, comptes, presences, paiements, evenements, presenceEvenements, actualites, covoiturage, gouter, gouterOptions, tableMarque, maillots, cartes, cartesReponses, compositions, compositionsMeta, foodtrucks, foodtrucksCatalog, restaurants, restaurantsMenus, selections });
 }
