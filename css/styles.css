@@ -32,23 +32,27 @@
 @keyframes pulseValidate { 0%, 100% { box-shadow: 0 0 0 0 rgba(51,209,122,0.5); } 50% { box-shadow: 0 0 0 7px rgba(51,209,122,0); } }
 @keyframes navIconBounce { 0% { transform: scale(1); } 45% { transform: scale(1.22); } 100% { transform: scale(1); } }
 html, body { margin: 0; padding: 0; background: #07080d; overflow-x: hidden; }
+/* Le fond (dégradé + halos néon) vit sur body, jamais sur #app : #app est recadré à 820px de
+   large sur desktop (voir le media query plus bas), donc un fond posé dessus s'arrêterait net à
+   cette largeur et laisserait un bord visible entre la carte centrée et le reste de l'écran. Posé
+   sur body, il couvre toujours toute la largeur de la fenêtre, quelle que soit la largeur de #app. */
 body {
   position: relative;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #e8e8ee;
   padding-bottom: calc(92px + env(safe-area-inset-bottom));
   min-height: 100vh;
-}
-#app {
-  position: relative;
-  max-width: 100%;
-  padding: 12px;
   /* 2 couches : le dégradé de contraste (jamais répété, sinon il recommence plus clair à chaque
      tuile et ça crée une ligne visible) + l'image qui, elle, se répète verticalement (repeat-y). */
   background-image: linear-gradient(180deg, rgba(7,8,13,0.2), rgba(7,8,13,0.32)), url('../images/bg-ashs.svg');
   background-size: 100% 100%, 100% auto;
   background-position: top center, top center;
   background-repeat: no-repeat, repeat-y;
+}
+#app {
+  position: relative;
+  max-width: 100%;
+  padding: 12px;
 }
 /* Header : dégradé qui part plein (navy) en haut et s'estompe totalement en bas (une seule
    direction, pas de "bump" plus clair au milieu) + halo ::before — porté depuis Clubly. Le blason
