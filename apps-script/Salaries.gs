@@ -34,9 +34,15 @@ function initialiserEspaceSalaries() {
 
 // Détecte le type d'un fichier Drive pour choisir l'icône et l'URL d'aperçu adaptées.
 // Un "lien externe" est représenté par un petit fichier texte dont la description
-// commence par LUSTUZONE_LINK:: — pas besoin de feuille séparée pour les stocker.
+// commence par ASHS_LINK:: — pas besoin de feuille séparée pour les stocker.
+// L'ancien préfixe LUSTUZONE_LINK:: (hérité du fork depuis LustuZone) reste accepté en lecture
+// pour ne pas casser les liens déjà créés avant ce renommage ; seul ASHS_LINK:: est écrit
+// désormais (voir api_salariesAddLink ci-dessous).
 function driveFileTypeInfo(file) {
   const desc = file.getDescription() || "";
+  if (desc.indexOf("ASHS_LINK::") === 0) {
+    return { iconType: "link", isLink: true, linkUrl: desc.substring("ASHS_LINK::".length), previewUrl: null, imageUrl: null, viewUrl: null };
+  }
   if (desc.indexOf("LUSTUZONE_LINK::") === 0) {
     return { iconType: "link", isLink: true, linkUrl: desc.substring("LUSTUZONE_LINK::".length), previewUrl: null, imageUrl: null, viewUrl: null };
   }
@@ -155,7 +161,7 @@ function api_salariesAddLink(ss, e) {
   const titre = (e.parameter.titre || "Lien").trim();
   const url = e.parameter.url || "";
   const file = parent.createFile(titre + ".url", url, MimeType.PLAIN_TEXT);
-  file.setDescription("LUSTUZONE_LINK::" + url);
+  file.setDescription("ASHS_LINK::" + url);
   return jsonOut({ ok: true, id: file.getId() });
 }
 
