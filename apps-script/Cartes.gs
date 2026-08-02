@@ -53,7 +53,36 @@ function api_addCarte(ss, e) {
   const options = (e.parameter.options || "").split("|").map(s => s.trim()).filter(Boolean);
   const total = e.parameter.total || "";
   sheet.appendRow([id, e.parameter.eventId, e.parameter.type, e.parameter.titre || "", JSON.stringify(options), total]);
+  notifyCarteCreeePush(ss, e.parameter.eventId, e.parameter.type);
   return jsonOut({ ok: true, id });
+}
+
+// Prévient l'équipe qu'une carte "repas"/"apero" vient d'être ouverte sur un de ses événements —
+// jamais bloquant pour la création de la carte elle-même.
+function notifyCarteCreeePush(ss, eventId, type) {
+  try {
+    const evSheet = ss.getSheetByName("Evenements");
+    if (!evSheet) return;
+    const evData = evSheet.getDataRange().getValues();
+    let evRow = null;
+    for (let i = 1; i < evData.length; i++) {
+      if (evData[i][0] === eventId) { evRow = evData[i]; break; }
+    }
+    if (!evRow) return;
+
+    const equipe = evRow[6] || "SF1";
+    const estMatch = evRow[3] === "Match";
+    const naturePhrase = estMatch ? `le match ${equipe}` : `l'entraînement ${equipe}`;
+    const dateAff = formatDateFr(evRow[1]);
+    const typeLabel = type === "apero" ? "apéro" : "repas";
+    const title = type === "apero" ? "🍹 Carte apéro ouverte" : "🍽️ Carte repas ouverte";
+    const body = `Une carte ${typeLabel} est ouverte pour ${naturePhrase} du ${dateAff}, réponds dès que possible.`;
+
+    const tokens = pushTokensForEquipe(ss, equipe, ["Joueur", "Coach"], true);
+    tokens.forEach(token => sendPushNotification(token, title, body));
+  } catch (err) {
+    Logger.log("Erreur notif push nouvelle carte : " + err);
+  }
 }
 
 // Coach/Admin uniquement : supprime une carte et toutes ses réponses.

@@ -67,6 +67,11 @@ const CLUB_NAME = "AS Hoenheim Sports";
 // vérité pour l'affichage côté frontend, voir extractOpponent() dans js/modules/agenda.js).
 const CLUB_FULL_NAME_PATTERN = /a\.?s\.?\s*ho[eë]nheim\s*sports/gi;
 const CLUB_SHORT_NAME_PATTERN = /ashs/gi;
+
+// Mot-clé (en minuscules) présent dans le lieu d'un événement pour détecter un match à domicile
+// côté serveur (ex: rappel goûter, réservé aux matchs à domicile). DOIT rester identique à
+// HOME_VENUE_KEYWORD dans js/config/club-config.js.
+const HOME_VENUE_KEYWORD = "hoenheim";
 function extractOpponentFromTitre(titre) {
   let t = String(titre || "").replace(CLUB_FULL_NAME_PATTERN, "").replace(CLUB_SHORT_NAME_PATTERN, "");
   t = t.replace(/\bvs\b|\bcontre\b/gi, " ");

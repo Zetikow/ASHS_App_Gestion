@@ -102,6 +102,115 @@ function sendCovoiturageReminders() {
   });
 }
 
+// ===================== GOÛTER D'APRÈS MATCH (hebdomadaire) =====================
+// Prévient l'équipe si personne n'est encore inscrit au goûter pour un match À DOMICILE dans
+// les 7 prochains jours (le goûter ne concerne que les matchs à domicile, voir Gouter.gs).
+function sendGouterReminders() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const evSheet = ss.getSheetByName("Evenements");
+  const gouterSheet = ss.getSheetByName("Gouter");
+  if (!evSheet || !gouterSheet) return;
+
+  const evData = evSheet.getDataRange().getValues();
+  const gouterData = gouterSheet.getDataRange().getValues();
+
+  const now = new Date();
+  const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const inscritsParEvent = {};
+  for (let i = 1; i < gouterData.length; i++) {
+    if (gouterData[i][0]) inscritsParEvent[gouterData[i][0]] = (inscritsParEvent[gouterData[i][0]] || 0) + 1;
+  }
+
+  for (let i = 1; i < evData.length; i++) {
+    const row = evData[i];
+    if (!row[0] || row[3] !== "Match") continue;
+    const lieu = String(row[5] || "").toLowerCase();
+    if (lieu.indexOf(HOME_VENUE_KEYWORD) === -1) continue; // extérieur : pas de goûter
+    const d = new Date(String(row[1]) + "T" + (row[2] || "00:00"));
+    if (d < now || d > in7Days) continue;
+    if (inscritsParEvent[row[0]] > 0) continue; // déjà au moins une personne inscrite
+
+    const equipe = row[6] || "SF1";
+    const adversaire = extractOpponentFromTitre(row[4]) || row[4] || "";
+    const dateAff = formatDateFr(row[1]);
+    const body = `Personne n'est encore inscrit pour le goûter de ${equipe} vs ${adversaire} (${dateAff}).`;
+    try {
+      const tokens = pushTokensForEquipe(ss, equipe, ["Joueur", "Coach"], true);
+      tokens.forEach(token => sendPushNotification(token, "🍪 Goûter", body));
+    } catch (err) {
+      Logger.log("Erreur notif push goûter pour " + row[0] + " : " + err);
+    }
+  }
+}
+
+// ===================== CARTES REPAS/APÉRO (hebdomadaire) =====================
+// Prévient individuellement chaque joueuse/joueur qui n'a encore répondu à aucun champ d'une
+// carte "repas"/"apero" ouverte sur un événement dans les 7 prochains jours.
+function sendCartesReminders() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const evSheet = ss.getSheetByName("Evenements");
+  const cartesSheet = ss.getSheetByName("Cartes");
+  const reponsesSheet = ss.getSheetByName("CartesReponses");
+  const comptesSheet = ss.getSheetByName("Comptes");
+  if (!evSheet || !cartesSheet || !reponsesSheet || !comptesSheet) return;
+
+  const evData = evSheet.getDataRange().getValues();
+  const cartesData = cartesSheet.getDataRange().getValues();
+  const reponsesData = reponsesSheet.getDataRange().getValues();
+  const comptes = comptesSheet.getDataRange().getValues();
+
+  const now = new Date();
+  const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const evById = {};
+  for (let i = 1; i < evData.length; i++) {
+    if (evData[i][0]) evById[evData[i][0]] = evData[i];
+  }
+
+  // A répondu = au moins une ligne (peu importe le champ) pour cette carte et cette personne.
+  const respondedByCarte = {};
+  for (let i = 1; i < reponsesData.length; i++) {
+    const carteId = reponsesData[i][0];
+    const nom = reponsesData[i][1];
+    if (!carteId || !nom) continue;
+    if (!respondedByCarte[carteId]) respondedByCarte[carteId] = new Set();
+    respondedByCarte[carteId].add(nom);
+  }
+
+  for (let i = 1; i < cartesData.length; i++) {
+    const carte = cartesData[i];
+    const carteId = carte[0];
+    const eventId = carte[1];
+    const type = carte[2];
+    if (!carteId) continue;
+    const evRow = evById[eventId];
+    if (!evRow) continue;
+    const d = new Date(String(evRow[1]) + "T" + (evRow[2] || "00:00"));
+    if (d < now || d > in7Days) continue;
+
+    const equipe = evRow[6] || "SF1";
+    const typeLabel = type === "apero" ? "apéro" : "repas";
+    const title = "🍽️ Carte à répondre";
+    const body = `Tu n'as pas encore répondu à la carte ${typeLabel} de ${equipe}.`;
+    const responded = respondedByCarte[carteId] || new Set();
+
+    for (let j = 1; j < comptes.length; j++) {
+      const row = comptes[j];
+      if (!rowHasRole(row, "Joueur") || rowEquipesForRole(row, "Joueur").indexOf(equipe) === -1) continue;
+      const nom = row[COL_NOM];
+      if (responded.has(nom)) continue;
+      const token = row[COL_PUSHSUBIDS];
+      if (!token) continue;
+      try {
+        sendPushNotification(token, title, body);
+      } catch (err) {
+        Logger.log("Erreur notif push relance carte à " + nom + " : " + err);
+      }
+    }
+  }
+}
+
 // ===================== MATCH DEMAIN (quotidien) =====================
 function sendMatchDemainReminders() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -135,11 +244,11 @@ function sendMatchDemainReminders() {
 
 // ===================== INSTALLATION DES DÉCLENCHEURS =====================
 
-// À exécuter UNE FOIS depuis l'éditeur : table de marque + covoiturage, chaque vendredi 9h
-// (même cadence que les rappels de présence mail, voir installReminderTriggers() dans
-// Notifications.gs).
+// À exécuter UNE FOIS depuis l'éditeur : table de marque + covoiturage + goûter + cartes
+// repas/apéro, chaque vendredi 9h (même cadence que les rappels de présence mail, voir
+// installReminderTriggers() dans Notifications.gs).
 function installPushWeeklyReminderTriggers() {
-  ["sendTableMarqueReminders", "sendCovoiturageReminders"].forEach(fn => {
+  ["sendTableMarqueReminders", "sendCovoiturageReminders", "sendGouterReminders", "sendCartesReminders"].forEach(fn => {
     ScriptApp.getProjectTriggers().forEach(t => {
       if (t.getHandlerFunction() === fn) ScriptApp.deleteTrigger(t);
     });
