@@ -119,7 +119,7 @@ function initGrid() {
   const g = {};
   PLAYERS.forEach(p => {
     g[p] = {};
-    ACTIONS.forEach((a, i) => { g[p][i] = i === 0 ? 10 : 0; });
+    ACTIONS.forEach((a, i) => { g[p][i] = 0; });
   });
   return g;
 }

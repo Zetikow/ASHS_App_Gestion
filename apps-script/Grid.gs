@@ -29,9 +29,9 @@ function setupGrid() {
   const header = ["Action", "Valeur", ...PLAYERS, "Total Action"];
   sheet.getRange(1, 1, 1, header.length).setValues([header]);
 
-  const rows = ACTIONS.map((a, i) => {
+  const rows = ACTIONS.map((a) => {
     const row = [a[0], a[1]];
-    PLAYERS.forEach(() => row.push(i === 0 ? 10 : 0));
+    PLAYERS.forEach(() => row.push(0));
     return row;
   });
   sheet.getRange(firstDataRow, 1, rows.length, header.length - 1).setValues(rows);
