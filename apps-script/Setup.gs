@@ -30,6 +30,7 @@ function setup() {
   setupSupport();
   setupCompositions();
   setupSelections();
+  setupBenevoles();
   ensureGridAction("Non renseigné avant dimanche soir", 1); // lié à Notifications.gs (checkDisponibilitesDimanche)
 }
 
