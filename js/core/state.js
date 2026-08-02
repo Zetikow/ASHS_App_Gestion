@@ -8,7 +8,7 @@ const LOGO_DATA_URI = "images/logo.svg";
 const SESSION_KEY = "ashs-session"; // {nom, role, code, equipe}
 const APP_VERSION_KEY = "ashs-app-version";
 const LAST_USER_KEY = "ashs-last-user"; // simple mémorisation du dernier nom connecté sur cet appareil (pas le code)
-const APP_VERSION = "2026-08-02-4"; // À incrémenter à chaque mise à jour déployée
+const APP_VERSION = "2026-08-02-5"; // À incrémenter à chaque mise à jour déployée
 // À COMPLÉTER si la saison ASHS ne suit pas le calendrier standard septembre-juin.
 const SEASON_START = new Date(2026, 8, 1);  // 1er septembre 2026
 const SEASON_END = new Date(2027, 5, 30);   // 30 juin 2027
@@ -112,6 +112,12 @@ let loginCodeLength = 4; // 4 chiffres par défaut, 6 pour un compte Admin (voir
 let loginSelectedNom = localStorage.getItem(LAST_USER_KEY) || "";
 let loginPrefilledFromMemory = !!loginSelectedNom;
 let loginNoms = null; // [{nom, role}, ...] chargé avant connexion, remplace la liste figée PLAYERS pour le menu
+// Le login peut être long : authentification puis synchronisation complète (~25 feuilles Google
+// Sheets en un seul appel api_getAll) — loginBusy/loginBusyMessage donnent un retour visuel
+// continu pendant toute cette attente (voir tryLogin/setInitialCode dans core/render.js),
+// plutôt que de laisser l'écran figé sans rien indiquer entre le clic et l'arrivée sur l'Accueil.
+let loginBusy = false;
+let loginBusyMessage = "";
 
 // ---------- Données ----------
 
